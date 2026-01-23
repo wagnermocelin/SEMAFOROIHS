@@ -32,6 +32,16 @@
             font-weight: 600;
         }
         
+        .semaforo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
         .badge-verde {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -77,15 +87,9 @@
                     </h1>
                 </div>
                 <div class="flex space-x-4">
-                    <button onclick="mostrarSecao('dashboard')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                        <i class="fas fa-chart-line mr-2"></i>Dashboard
-                    </button>
-                    <button onclick="mostrarSecao('clientes')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                        <i class="fas fa-users mr-2"></i>Clientes
-                    </button>
-                    <button onclick="mostrarSecao('ranking')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                        <i class="fas fa-trophy mr-2"></i>Ranking
-                    </button>
+                    <a href="/cliente" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-green-600/30 flex items-center">
+                        <i class="fas fa-user-circle mr-2"></i>Área do Cliente
+                    </a>
                     <button onclick="mostrarSecao('admin')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-purple-600/30">
                         <i class="fas fa-cog mr-2"></i>Admin
                     </button>
@@ -96,109 +100,15 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div id="secao-dashboard" class="secao">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-xl card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-blue-100 text-sm font-medium">Total de Clientes</p>
-                            <p class="text-3xl font-bold mt-2" id="stat-total">0</p>
-                        </div>
-                        <i class="fas fa-users text-4xl text-blue-200"></i>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-xl card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-green-100 text-sm font-medium">Nível Verde</p>
-                            <p class="text-3xl font-bold mt-2" id="stat-verde">0</p>
-                        </div>
-                        <i class="fas fa-circle text-4xl text-green-200"></i>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 shadow-xl card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-yellow-100 text-sm font-medium">Nível Amarelo</p>
-                            <p class="text-3xl font-bold mt-2" id="stat-amarelo">0</p>
-                        </div>
-                        <i class="fas fa-circle text-4xl text-yellow-200"></i>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 shadow-xl card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-red-100 text-sm font-medium">Nível Vermelho</p>
-                            <p class="text-3xl font-bold mt-2" id="stat-vermelho">0</p>
-                        </div>
-                        <i class="fas fa-circle text-4xl text-red-200"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
-                <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <i class="fas fa-info-circle mr-3 text-blue-400"></i>
-                    Sistema de Níveis
+        <div id="secao-ranking" class="secao">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold flex items-center">
+                    <i class="fas fa-trophy text-yellow-500 mr-3"></i>
+                    Top 10 Clientes
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-red-500/10 border-2 border-red-500 rounded-lg p-6 text-center">
-                        <i class="fas fa-circle text-5xl text-red-500 mb-4 nivel-vermelho"></i>
-                        <h3 class="text-xl font-bold mb-2">Vermelho</h3>
-                        <p class="text-gray-300">0 - 199 pontos</p>
-                        <p class="text-sm text-gray-400 mt-2">Cliente iniciante</p>
-                    </div>
-                    
-                    <div class="bg-yellow-500/10 border-2 border-yellow-500 rounded-lg p-6 text-center">
-                        <i class="fas fa-circle text-5xl text-yellow-500 mb-4 nivel-amarelo"></i>
-                        <h3 class="text-xl font-bold mb-2">Amarelo</h3>
-                        <p class="text-gray-300">200 - 499 pontos</p>
-                        <p class="text-sm text-gray-400 mt-2">Cliente regular</p>
-                    </div>
-                    
-                    <div class="bg-green-500/10 border-2 border-green-500 rounded-lg p-6 text-center">
-                        <i class="fas fa-circle text-5xl text-green-500 mb-4 nivel-verde"></i>
-                        <h3 class="text-xl font-bold mb-2">Verde</h3>
-                        <p class="text-gray-300">500+ pontos</p>
-                        <p class="text-sm text-gray-400 mt-2">Cliente VIP</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="secao-clientes" class="secao hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">Gerenciar Clientes</h2>
-                <button onclick="abrirModalNovoCliente()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-6 py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105">
-                    <i class="fas fa-plus mr-2"></i>Novo Cliente
-                </button>
             </div>
             
-            <div class="mb-6">
-                <input type="text" id="busca-cliente" placeholder="Buscar cliente..." 
-                    class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onkeyup="filtrarClientes()">
-            </div>
-
-            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-700/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Telefone</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Nível</th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-clientes" class="divide-y divide-gray-700">
-                        </tbody>
-                    </table>
-                </div>
+            <div class="grid grid-cols-1 gap-4" id="lista-ranking">
             </div>
         </div>
 
@@ -247,7 +157,130 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="mb-6 flex space-x-2">
+                    <button onclick="mostrarAbaAdmin('dashboard')" id="btn-admin-dashboard" class="px-4 py-2 rounded-lg bg-blue-500 font-semibold">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </button>
+                    <button onclick="mostrarAbaAdmin('clientes')" id="btn-admin-clientes" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                        <i class="fas fa-users mr-2"></i>Clientes
+                    </button>
+                    <button onclick="mostrarAbaAdmin('produtos')" id="btn-admin-produtos" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                        <i class="fas fa-box mr-2"></i>Produtos
+                    </button>
+                    <button onclick="mostrarAbaAdmin('solicitacoes')" id="btn-admin-solicitacoes" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                        <i class="fas fa-clipboard-check mr-2"></i>Validar Solicitações
+                    </button>
+                    <button onclick="mostrarAbaAdmin('config')" id="btn-admin-config" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                        <i class="fas fa-cog mr-2"></i>Configurações
+                    </button>
+                </div>
+
+                <div id="admin-aba-dashboard" style="display: none;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-xl card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm font-medium">Total de Clientes</p>
+                                    <p class="text-3xl font-bold mt-2" id="stat-total">0</p>
+                                </div>
+                                <i class="fas fa-users text-4xl text-blue-200"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-xl card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100 text-sm font-medium">Nível Verde</p>
+                                    <p class="text-3xl font-bold mt-2" id="stat-verde">0</p>
+                                </div>
+                                <i class="fas fa-circle text-4xl text-green-200"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 shadow-xl card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-yellow-100 text-sm font-medium">Nível Amarelo</p>
+                                    <p class="text-3xl font-bold mt-2" id="stat-amarelo">0</p>
+                                </div>
+                                <i class="fas fa-circle text-4xl text-yellow-200"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 shadow-xl card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-red-100 text-sm font-medium">Nível Vermelho</p>
+                                    <p class="text-3xl font-bold mt-2" id="stat-vermelho">0</p>
+                                </div>
+                                <i class="fas fa-circle text-4xl text-red-200"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-info-circle mr-3 text-blue-400"></i>
+                            Sistema de Níveis
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-red-500/10 border-2 border-red-500 rounded-lg p-6 text-center">
+                                <i class="fas fa-circle text-5xl text-red-500 mb-4 nivel-vermelho"></i>
+                                <h3 class="text-xl font-bold mb-2">Vermelho</h3>
+                                <p class="text-gray-300">0 - 199 pontos</p>
+                                <p class="text-sm text-gray-400 mt-2">Cliente iniciante</p>
+                            </div>
+                            
+                            <div class="bg-yellow-500/10 border-2 border-yellow-500 rounded-lg p-6 text-center">
+                                <i class="fas fa-circle text-5xl text-yellow-500 mb-4 nivel-amarelo"></i>
+                                <h3 class="text-xl font-bold mb-2">Amarelo</h3>
+                                <p class="text-gray-300">200 - 499 pontos</p>
+                                <p class="text-sm text-gray-400 mt-2">Cliente regular</p>
+                            </div>
+                            
+                            <div class="bg-green-500/10 border-2 border-green-500 rounded-lg p-6 text-center">
+                                <i class="fas fa-circle text-5xl text-green-500 mb-4 nivel-verde"></i>
+                                <h3 class="text-xl font-bold mb-2">Verde</h3>
+                                <p class="text-gray-300">500+ pontos</p>
+                                <p class="text-sm text-gray-400 mt-2">Cliente VIP</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-aba-clientes" style="display: none;">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold">Gerenciar Clientes</h2>
+                        <button onclick="abrirModalNovoCliente()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-6 py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105">
+                            <i class="fas fa-plus mr-2"></i>Novo Cliente
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <input type="text" id="busca-cliente" placeholder="Buscar cliente..." 
+                            class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onkeyup="filtrarClientes()">
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden" style="display: block !important; visibility: visible !important;">
+                        <div class="overflow-x-auto" style="display: block !important; visibility: visible !important;">
+                            <table class="w-full" style="display: table !important; visibility: visible !important; width: 100% !important;">
+                                <thead class="bg-gray-700/50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Telefone</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-clientes" style="display: table-row-group !important; visibility: visible !important;">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-aba-config" style="display: none;">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
                         <h3 class="text-xl font-bold mb-4 flex items-center">
                             <i class="fas fa-store text-blue-400 mr-2"></i>
@@ -373,6 +406,58 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+                <div id="admin-aba-produtos" style="display: none;">
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-bold flex items-center">
+                                <i class="fas fa-box text-orange-400 mr-2"></i>
+                                Gerenciar Produtos
+                            </h3>
+                            <button onclick="abrirModalNovoProduto()" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-4 py-3 rounded-lg font-semibold shadow-lg transition">
+                                <i class="fas fa-plus mr-2"></i>Novo Produto
+                            </button>
+                        </div>
+                        
+                        <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-700/50">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left text-sm font-semibold">Produto</th>
+                                            <th class="px-6 py-4 text-left text-sm font-semibold">Descrição</th>
+                                            <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
+                                            <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                                            <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-produtos-admin" class="divide-y divide-gray-700">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-aba-solicitacoes" style="display: none;">
+                    <div class="mb-6 flex space-x-2">
+                        <button onclick="filtrarSolicitacoesAdmin('pendente')" id="btn-sol-pendente" class="px-4 py-2 rounded-lg bg-yellow-500 font-semibold">
+                            Pendentes
+                        </button>
+                        <button onclick="filtrarSolicitacoesAdmin('aprovada')" id="btn-sol-aprovada" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                            Aprovadas
+                        </button>
+                        <button onclick="filtrarSolicitacoesAdmin('rejeitada')" id="btn-sol-rejeitada" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                            Rejeitadas
+                        </button>
+                        <button onclick="filtrarSolicitacoesAdmin('todas')" id="btn-sol-todas" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                            Todas
+                        </button>
+                    </div>
+                    <div id="lista-solicitacoes-admin" class="grid grid-cols-1 gap-4">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -468,6 +553,93 @@
         </div>
     </div>
 
+    <div id="modal-novo-produto" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Novo Produto</h3>
+                <button onclick="fecharModalNovoProduto()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="form-novo-produto" onsubmit="cadastrarProduto(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Nome do Produto *</label>
+                        <input type="text" id="produto-nome" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Descrição</label>
+                        <textarea id="produto-descricao" rows="3"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Pontos *</label>
+                        <input type="number" id="produto-pontos" required min="1"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="fecharModalNovoProduto()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-4 py-3 rounded-lg font-semibold transition">
+                        Cadastrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-editar-produto" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Editar Produto</h3>
+                <button onclick="fecharModalEditarProduto()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="form-editar-produto" onsubmit="salvarEdicaoProduto(event)">
+                <input type="hidden" id="edit-produto-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Nome do Produto *</label>
+                        <input type="text" id="edit-produto-nome" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Descrição</label>
+                        <textarea id="edit-produto-descricao" rows="3"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Pontos *</label>
+                        <input type="number" id="edit-produto-pontos" required min="1"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="edit-produto-ativo" class="w-5 h-5 rounded">
+                            <span class="text-sm font-medium">Produto Ativo</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="fecharModalEditarProduto()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 rounded-lg font-semibold transition">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let clientesData = [];
 
@@ -506,16 +678,16 @@
 
         function mostrarSecao(secao) {
             document.querySelectorAll('.secao').forEach(s => s.classList.add('hidden'));
-            document.getElementById(`secao-${secao}`).classList.remove('hidden');
             
-            if (secao === 'dashboard') {
-                carregarEstatisticas();
-            } else if (secao === 'clientes') {
-                carregarClientes();
-            } else if (secao === 'ranking') {
-                carregarRanking();
-            } else if (secao === 'admin') {
-                carregarConfiguracoes();
+            if (secao === 'admin') {
+                document.getElementById('secao-admin').classList.remove('hidden');
+                document.getElementById('admin-login').classList.remove('hidden');
+                document.getElementById('admin-painel').classList.add('hidden');
+            } else {
+                document.getElementById(`secao-${secao}`).classList.remove('hidden');
+                if (secao === 'ranking') {
+                    carregarRanking();
+                }
             }
         }
 
@@ -540,49 +712,62 @@
                 renderizarClientes(clientesData);
             } catch (error) {
                 console.error('Erro ao carregar clientes:', error);
+                alert('Erro ao carregar clientes: ' + error.message);
             }
         }
 
         function renderizarClientes(clientes) {
             const lista = document.getElementById('lista-clientes');
-            lista.innerHTML = '';
             
+            if (!lista) {
+                console.error('Elemento lista-clientes não encontrado!');
+                return;
+            }
+            
+            if (clientes.length === 0) {
+                lista.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhum cliente cadastrado</td></tr>';
+                return;
+            }
+            
+            let html = '';
             clientes.forEach(cliente => {
-                const nivelClass = `badge-${cliente.nivel}`;
-                const nivelIcon = cliente.nivel === 'verde' ? 'fa-circle' : 
-                                 cliente.nivel === 'amarelo' ? 'fa-circle' : 'fa-circle';
+                const nivelClass = 'badge-' + cliente.nivel;
+                const nivelTexto = cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1);
                 
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-700/30 transition';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-medium">${cliente.nome}</td>
-                    <td class="px-6 py-4 text-gray-300">${cliente.telefone || '-'}</td>
-                    <td class="px-6 py-4 font-bold text-blue-400">${cliente.pontos_totais}</td>
-                    <td class="px-6 py-4">
-                        <span class="semaforo-badge ${nivelClass}">
-                            <i class="fas ${nivelIcon}"></i>
-                            ${cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex space-x-2">
-                            <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome}')" 
-                                class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition" title="Adicionar Pontos">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button onclick="verDetalhes(${cliente.id})" 
-                                class="bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition" title="Ver Detalhes">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="deletarCliente(${cliente.id})" 
-                                class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition" title="Deletar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
+                html += `
+                    <tr style="background-color: rgba(55, 65, 81, 0.3);">
+                        <td class="px-6 py-4 text-white font-medium">${cliente.nome}</td>
+                        <td class="px-6 py-4 text-gray-300">${cliente.telefone || '-'}</td>
+                        <td class="px-6 py-4 text-blue-400 font-bold">${cliente.pontos_totais}</td>
+                        <td class="px-6 py-4">
+                            <span class="semaforo-badge ${nivelClass}">
+                                <i class="fas fa-circle"></i> ${nivelTexto}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex gap-2">
+                                <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}'  )" 
+                                    class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition"
+                                    title="Adicionar Pontos">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button onclick="verDetalhes(${cliente.id})" 
+                                    class="bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition"
+                                    title="Ver Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deletarCliente(${cliente.id})" 
+                                    class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition"
+                                    title="Deletar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
-                lista.appendChild(tr);
             });
+            
+            lista.innerHTML = html;
         }
 
         function filtrarClientes() {
@@ -747,6 +932,7 @@
 
         async function fazerLoginAdmin(event) {
             event.preventDefault();
+            
             const senha = document.getElementById('senha-admin').value;
             
             try {
@@ -756,12 +942,12 @@
                     body: JSON.stringify({ senha })
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
+                if (response.ok) {
                     document.getElementById('admin-login').classList.add('hidden');
-                    document.getElementById('admin-painel').classList.remove('hidden');
-                    carregarConfiguracoes();
+                    const painelAdmin = document.getElementById('admin-painel');
+                    painelAdmin.classList.remove('hidden');
+                    painelAdmin.style.display = 'block';
+                    mostrarAbaAdmin('dashboard');
                 } else {
                     alert('Senha incorreta!');
                 }
@@ -897,8 +1083,302 @@
             }
         }
 
-        carregarEstatisticas();
+        function mostrarAbaAdmin(aba) {
+            // Esconde todas as abas
+            ['admin-aba-dashboard', 'admin-aba-clientes', 'admin-aba-config', 'admin-aba-produtos', 'admin-aba-solicitacoes'].forEach(id => {
+                const el = document.getElementById(id);
+                el.style.display = 'none';
+            });
+            
+            // Atualiza os botões
+            ['btn-admin-dashboard', 'btn-admin-clientes', 'btn-admin-config', 'btn-admin-produtos', 'btn-admin-solicitacoes'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.classList.remove('bg-blue-500', 'bg-teal-500', 'bg-purple-500', 'bg-orange-500', 'bg-green-500');
+                btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            // Mostra a aba selecionada
+            const abaElement = document.getElementById(`admin-aba-${aba}`);
+            abaElement.style.cssText = 'display: block !important;';
+            
+            const btnAtivo = document.getElementById(`btn-admin-${aba}`);
+            btnAtivo.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            
+            if (aba === 'dashboard') {
+                btnAtivo.classList.add('bg-blue-500');
+                carregarEstatisticas();
+            }
+            else if (aba === 'clientes') {
+                btnAtivo.classList.add('bg-teal-500');
+                carregarClientes();
+            }
+            else if (aba === 'config') btnAtivo.classList.add('bg-purple-500');
+            else if (aba === 'produtos') {
+                btnAtivo.classList.add('bg-orange-500');
+                carregarProdutosAdmin();
+            }
+            else if (aba === 'solicitacoes') {
+                btnAtivo.classList.add('bg-green-500');
+                filtrarSolicitacoesAdmin('pendente');
+            }
+        }
+
+        async function carregarProdutosAdmin() {
+            try {
+                const response = await fetch('/api/produtos');
+                const produtos = await response.json();
+                
+                const lista = document.getElementById('lista-produtos-admin');
+                lista.innerHTML = '';
+                
+                produtos.forEach(produto => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-700/30 transition';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium">${produto.nome}</td>
+                        <td class="px-6 py-4 text-gray-300">${produto.descricao || '-'}</td>
+                        <td class="px-6 py-4 font-bold text-orange-400">${produto.pontos} pts</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold ${produto.ativo ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                                ${produto.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-2">
+                                <button onclick="editarProdutoAdmin(${produto.id})" 
+                                    class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deletarProdutoAdmin(${produto.id})" 
+                                    class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition" title="Deletar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    lista.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+            }
+        }
+
+        function abrirModalNovoProduto() {
+            document.getElementById('modal-novo-produto').classList.remove('hidden');
+            document.getElementById('modal-novo-produto').classList.add('flex');
+        }
+
+        function fecharModalNovoProduto() {
+            document.getElementById('modal-novo-produto').classList.add('hidden');
+            document.getElementById('modal-novo-produto').classList.remove('flex');
+            document.getElementById('form-novo-produto').reset();
+        }
+
+        async function cadastrarProduto(event) {
+            event.preventDefault();
+            
+            const nome = document.getElementById('produto-nome').value;
+            const descricao = document.getElementById('produto-descricao').value;
+            const pontos = parseInt(document.getElementById('produto-pontos').value);
+            
+            try {
+                const response = await fetch('/api/produtos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, descricao, pontos })
+                });
+                
+                if (response.ok) {
+                    fecharModalNovoProduto();
+                    carregarProdutosAdmin();
+                    alert('Produto cadastrado com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar produto:', error);
+                alert('Erro ao cadastrar produto');
+            }
+        }
+
+        async function editarProdutoAdmin(produtoId) {
+            try {
+                const response = await fetch('/api/produtos');
+                const produtos = await response.json();
+                const produto = produtos.find(p => p.id === produtoId);
+                
+                if (produto) {
+                    document.getElementById('edit-produto-id').value = produto.id;
+                    document.getElementById('edit-produto-nome').value = produto.nome;
+                    document.getElementById('edit-produto-descricao').value = produto.descricao || '';
+                    document.getElementById('edit-produto-pontos').value = produto.pontos;
+                    document.getElementById('edit-produto-ativo').checked = produto.ativo === 1;
+                    
+                    document.getElementById('modal-editar-produto').classList.remove('hidden');
+                    document.getElementById('modal-editar-produto').classList.add('flex');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar produto:', error);
+            }
+        }
+
+        function fecharModalEditarProduto() {
+            document.getElementById('modal-editar-produto').classList.add('hidden');
+            document.getElementById('modal-editar-produto').classList.remove('flex');
+        }
+
+        async function salvarEdicaoProduto(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('edit-produto-id').value;
+            const nome = document.getElementById('edit-produto-nome').value;
+            const descricao = document.getElementById('edit-produto-descricao').value;
+            const pontos = parseInt(document.getElementById('edit-produto-pontos').value);
+            const ativo = document.getElementById('edit-produto-ativo').checked ? 1 : 0;
+            
+            try {
+                const response = await fetch(`/api/produtos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, descricao, pontos, ativo })
+                });
+                
+                if (response.ok) {
+                    fecharModalEditarProduto();
+                    carregarProdutosAdmin();
+                    alert('Produto atualizado com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar produto:', error);
+                alert('Erro ao atualizar produto');
+            }
+        }
+
+        async function deletarProdutoAdmin(produtoId) {
+            if (!confirm('Tem certeza que deseja deletar este produto?')) return;
+            
+            try {
+                const response = await fetch(`/api/produtos/${produtoId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    carregarProdutosAdmin();
+                    alert('Produto deletado com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao deletar produto:', error);
+                alert('Erro ao deletar produto');
+            }
+        }
+
+        let statusFiltroAdmin = 'pendente';
+
+        async function filtrarSolicitacoesAdmin(status) {
+            statusFiltroAdmin = status;
+            
+            ['btn-sol-pendente', 'btn-sol-aprovada', 'btn-sol-rejeitada', 'btn-sol-todas'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.classList.remove('bg-yellow-500', 'bg-green-500', 'bg-red-500', 'bg-blue-500');
+                btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            const btnAtual = document.getElementById(`btn-sol-${status}`);
+            btnAtual.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            
+            if (status === 'pendente') btnAtual.classList.add('bg-yellow-500');
+            else if (status === 'aprovada') btnAtual.classList.add('bg-green-500');
+            else if (status === 'rejeitada') btnAtual.classList.add('bg-red-500');
+            else btnAtual.classList.add('bg-blue-500');
+            
+            await carregarSolicitacoesAdmin(status);
+        }
+
+        async function carregarSolicitacoesAdmin(status) {
+            try {
+                const response = await fetch(`/api/solicitacoes?status=${status}`);
+                const solicitacoes = await response.json();
+                
+                const lista = document.getElementById('lista-solicitacoes-admin');
+                lista.innerHTML = '';
+                
+                if (solicitacoes.length === 0) {
+                    lista.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma solicitação encontrada</p>';
+                    return;
+                }
+                
+                solicitacoes.forEach(sol => {
+                    const data = new Date(sol.data_solicitacao);
+                    const statusClass = sol.status === 'aprovada' ? 'bg-green-500/20 text-green-400 border-green-500' :
+                                       sol.status === 'rejeitada' ? 'bg-red-500/20 text-red-400 border-red-500' :
+                                       'bg-yellow-500/20 text-yellow-400 border-yellow-500';
+                    
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-lg font-bold text-blue-400">${sol.cliente_nome}</h4>
+                                <p class="text-sm text-gray-400">${sol.cliente_telefone}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold border ${statusClass}">
+                                ${sol.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 mb-4">
+                            <p class="font-bold text-orange-400">${sol.produto_nome}</p>
+                            <p class="text-sm text-gray-400">${sol.produto_descricao || ''}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm">Quantidade: <span class="font-bold">${sol.quantidade}</span></span>
+                                <span class="text-lg font-bold text-green-400">+${sol.pontos_total} pontos</span>
+                            </div>
+                            ${sol.observacao ? `<p class="text-xs text-gray-500 mt-2">Obs: ${sol.observacao}</p>` : ''}
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-400">
+                            <span><i class="fas fa-calendar mr-1"></i>${data.toLocaleString('pt-BR')}</span>
+                            ${sol.status === 'pendente' ? `
+                                <div class="flex space-x-2">
+                                    <button onclick="validarSolicitacaoAdmin(${sol.id}, false)" 
+                                        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition font-semibold">
+                                        <i class="fas fa-times mr-1"></i>Rejeitar
+                                    </button>
+                                    <button onclick="validarSolicitacaoAdmin(${sol.id}, true)" 
+                                        class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg transition font-semibold">
+                                        <i class="fas fa-check mr-1"></i>Aprovar
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar solicitações:', error);
+            }
+        }
+
+        async function validarSolicitacaoAdmin(solicitacaoId, aprovar) {
+            const acao = aprovar ? 'aprovar' : 'rejeitar';
+            if (!confirm(`Tem certeza que deseja ${acao} esta solicitação?`)) return;
+            
+            try {
+                const response = await fetch(`/api/solicitacoes/${solicitacaoId}/validar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ aprovar })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                    carregarSolicitacoesAdmin(statusFiltroAdmin);
+                }
+            } catch (error) {
+                console.error('Erro ao validar solicitação:', error);
+                alert('Erro ao validar solicitação');
+            }
+        }
+
         carregarConfiguracoes();
+        carregarRanking();
     </script>
 </body>
 </html>

@@ -35,12 +35,19 @@ def init_db():
             nome TEXT NOT NULL,
             telefone TEXT,
             email TEXT,
+            senha TEXT,
             data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             pontos_totais INTEGER DEFAULT 0,
             nivel TEXT DEFAULT 'vermelho',
             ultima_visita TIMESTAMP
         )
     ''')
+    
+    try:
+        cursor.execute('ALTER TABLE clientes ADD COLUMN senha TEXT')
+        conn.commit()
+    except:
+        pass
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pontuacoes (
@@ -50,9 +57,16 @@ def init_db():
             tipo TEXT NOT NULL,
             descricao TEXT,
             data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data_validade TIMESTAMP,
             FOREIGN KEY (cliente_id) REFERENCES clientes (id)
         )
     ''')
+    
+    try:
+        cursor.execute('ALTER TABLE pontuacoes ADD COLUMN data_validade TIMESTAMP')
+        conn.commit()
+    except:
+        pass
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS configuracoes (
@@ -63,6 +77,44 @@ def init_db():
             pontos_amarelo_min INTEGER DEFAULT 200,
             pontos_verde_min INTEGER DEFAULT 500,
             senha_admin TEXT DEFAULT 'admin123'
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            descricao TEXT,
+            pontos INTEGER NOT NULL,
+            ativo INTEGER DEFAULT 1,
+            data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS solicitacoes_pontos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            produto_id INTEGER NOT NULL,
+            quantidade INTEGER DEFAULT 1,
+            pontos_total INTEGER NOT NULL,
+            status TEXT DEFAULT 'pendente',
+            observacao TEXT,
+            data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data_validacao TIMESTAMP,
+            validado_por TEXT,
+            FOREIGN KEY (cliente_id) REFERENCES clientes (id),
+            FOREIGN KEY (produto_id) REFERENCES produtos (id)
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS checkins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            data_checkin TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            localizacao TEXT,
+            FOREIGN KEY (cliente_id) REFERENCES clientes (id)
         )
     ''')
     
@@ -87,6 +139,22 @@ def get_configuracoes():
     conn.close()
     return dict(config) if config else None
 
+def calcular_pontos_validos(cliente_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT SUM(pontos) as total
+        FROM pontuacoes
+        WHERE cliente_id = ?
+        AND (data_validade IS NULL OR data_validade > datetime('now'))
+    ''', (cliente_id,))
+    
+    resultado = cursor.fetchone()
+    conn.close()
+    
+    return resultado[0] if resultado[0] else 0
+
 def calcular_nivel(pontos):
     config = get_configuracoes()
     if config:
@@ -100,6 +168,33 @@ def calcular_nivel(pontos):
         elif pontos >= 200:
             return 'amarelo'
     return 'vermelho'
+
+def calcular_pontos_frequencia(cliente_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT COUNT(DISTINCT DATE(data_checkin)) as dias_visitados
+        FROM checkins
+        WHERE cliente_id = ?
+        AND data_checkin >= datetime('now', '-30 days')
+    ''', (cliente_id,))
+    
+    resultado = cursor.fetchone()
+    dias_visitados = resultado[0] if resultado[0] else 0
+    
+    pontos_bonus = 0
+    if dias_visitados >= 20:
+        pontos_bonus = 100
+    elif dias_visitados >= 15:
+        pontos_bonus = 75
+    elif dias_visitados >= 10:
+        pontos_bonus = 50
+    elif dias_visitados >= 5:
+        pontos_bonus = 25
+    
+    conn.close()
+    return pontos_bonus, dias_visitados
 
 @app.route('/')
 def index():
@@ -214,35 +309,40 @@ def adicionar_pontos():
     cursor = conn.cursor()
     
     cursor.execute('''
-        INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
+        VALUES (?, ?, ?, ?, datetime('now', '+90 days'))
     ''', (cliente_id, pontos, tipo, descricao))
+    
+    pontos_validos = calcular_pontos_validos(cliente_id)
+    pontos_bonus, dias_visitados = calcular_pontos_frequencia(cliente_id)
+    
+    if pontos_bonus > 0:
+        cursor.execute('''
+            INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
+            VALUES (?, ?, 'frequencia', ?, datetime('now', '+90 days'))
+        ''', (cliente_id, pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
+        pontos_validos = calcular_pontos_validos(cliente_id)
     
     cursor.execute('''
         UPDATE clientes 
-        SET pontos_totais = pontos_totais + ?,
+        SET pontos_totais = ?,
             nivel = ?,
             ultima_visita = CURRENT_TIMESTAMP
         WHERE id = ?
-    ''', (pontos, calcular_nivel(pontos), cliente_id))
-    
-    cursor.execute('SELECT pontos_totais FROM clientes WHERE id = ?', (cliente_id,))
-    resultado = cursor.fetchone()
-    pontos_totais = resultado[0] if resultado else 0
-    
-    cursor.execute('''
-        UPDATE clientes 
-        SET nivel = ?
-        WHERE id = ?
-    ''', (calcular_nivel(pontos_totais), cliente_id))
+    ''', (pontos_validos, calcular_nivel(pontos_validos), cliente_id))
     
     conn.commit()
     conn.close()
     
+    mensagem = 'Pontos adicionados com sucesso'
+    if pontos_bonus > 0:
+        mensagem += f' + {pontos_bonus} pts de bônus por frequência!'
+    
     return jsonify({
-        'message': 'Pontos adicionados com sucesso',
-        'pontos_totais': pontos_totais,
-        'nivel': calcular_nivel(pontos_totais)
+        'message': mensagem,
+        'pontos_totais': pontos_validos,
+        'pontos_bonus': pontos_bonus,
+        'nivel': calcular_nivel(pontos_validos)
     })
 
 @app.route('/api/ranking', methods=['GET'])
@@ -384,6 +484,471 @@ def upload_logo():
 @app.route('/static/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/cliente')
+def area_cliente():
+    return render_template('cliente.html')
+
+@app.route('/api/cliente/login', methods=['POST'])
+def cliente_login():
+    data = request.json
+    telefone = data.get('telefone')
+    senha = data.get('senha')
+    
+    if not telefone:
+        return jsonify({'error': 'Telefone é obrigatório'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if senha:
+        cursor.execute('SELECT * FROM clientes WHERE telefone = ? AND senha = ?', (telefone, senha))
+    else:
+        cursor.execute('SELECT * FROM clientes WHERE telefone = ?', (telefone,))
+    
+    cliente = cursor.fetchone()
+    conn.close()
+    
+    if cliente:
+        session['cliente_id'] = cliente['id']
+        session['cliente_nome'] = cliente['nome']
+        return jsonify({
+            'success': True,
+            'cliente': {
+                'id': cliente['id'],
+                'nome': cliente['nome'],
+                'telefone': cliente['telefone'],
+                'email': cliente['email'],
+                'pontos_totais': cliente['pontos_totais'],
+                'nivel': cliente['nivel']
+            }
+        })
+    
+    return jsonify({'error': 'Cliente não encontrado ou senha incorreta'}), 401
+
+@app.route('/api/cliente/logout', methods=['POST'])
+def cliente_logout():
+    session.pop('cliente_id', None)
+    session.pop('cliente_nome', None)
+    return jsonify({'success': True})
+
+@app.route('/api/cliente/perfil', methods=['GET'])
+def cliente_perfil():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    cliente_id = session['cliente_id']
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clientes WHERE id = ?', (cliente_id,))
+    cliente = cursor.fetchone()
+    
+    if not cliente:
+        conn.close()
+        return jsonify({'error': 'Cliente não encontrado'}), 404
+    
+    cursor.execute('''
+        SELECT * FROM pontuacoes 
+        WHERE cliente_id = ? 
+        ORDER BY data DESC
+    ''', (cliente_id,))
+    historico = [dict(row) for row in cursor.fetchall()]
+    
+    cursor.execute('''
+        SELECT SUM(pontos) as total
+        FROM pontuacoes
+        WHERE cliente_id = ?
+        AND data_validade IS NOT NULL
+        AND data_validade <= datetime('now')
+    ''', (cliente_id,))
+    resultado_expirados = cursor.fetchone()
+    pontos_expirados = resultado_expirados[0] if resultado_expirados[0] else 0
+    
+    pontos_bonus, dias_visitados = calcular_pontos_frequencia(cliente_id)
+    
+    conn.close()
+    
+    config = get_configuracoes()
+    pontos_validos = calcular_pontos_validos(cliente_id)
+    
+    return jsonify({
+        'id': cliente['id'],
+        'nome': cliente['nome'],
+        'telefone': cliente['telefone'],
+        'email': cliente['email'],
+        'pontos_totais': pontos_validos,
+        'pontos_expirados': pontos_expirados,
+        'pontos_bonus_disponiveis': pontos_bonus,
+        'dias_visitados_mes': dias_visitados,
+        'nivel': calcular_nivel(pontos_validos),
+        'data_cadastro': cliente['data_cadastro'],
+        'ultima_visita': cliente['ultima_visita'],
+        'historico': historico,
+        'config': {
+            'pontos_amarelo': config['pontos_amarelo_min'] if config else 200,
+            'pontos_verde': config['pontos_verde_min'] if config else 500
+        }
+    })
+
+@app.route('/api/cliente/definir-senha', methods=['POST'])
+def cliente_definir_senha():
+    data = request.json
+    telefone = data.get('telefone')
+    senha = data.get('senha')
+    
+    if not telefone or not senha:
+        return jsonify({'error': 'Telefone e senha são obrigatórios'}), 400
+    
+    if len(senha) < 4:
+        return jsonify({'error': 'Senha deve ter no mínimo 4 caracteres'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE clientes SET senha = ? WHERE telefone = ?', (senha, telefone))
+    
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({'error': 'Cliente não encontrado'}), 404
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Senha definida com sucesso'})
+
+@app.route('/api/cliente/checkin', methods=['POST'])
+def fazer_checkin():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    cliente_id = session['cliente_id']
+    data = request.json
+    localizacao = data.get('localizacao', '')
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT COUNT(*) FROM checkins
+        WHERE cliente_id = ?
+        AND DATE(data_checkin) = DATE('now')
+    ''', (cliente_id,))
+    
+    checkin_hoje = cursor.fetchone()[0]
+    
+    if checkin_hoje > 0:
+        conn.close()
+        return jsonify({'error': 'Você já fez check-in hoje!'}), 400
+    
+    cursor.execute('''
+        INSERT INTO checkins (cliente_id, localizacao)
+        VALUES (?, ?)
+    ''', (cliente_id, localizacao))
+    
+    cursor.execute('''
+        UPDATE clientes 
+        SET ultima_visita = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (cliente_id,))
+    
+    conn.commit()
+    
+    pontos_bonus, dias_visitados = calcular_pontos_frequencia(cliente_id)
+    
+    conn.close()
+    
+    mensagem = 'Check-in realizado com sucesso!'
+    if pontos_bonus > 0:
+        mensagem += f' Você tem {pontos_bonus} pontos de bônus disponíveis por frequência!'
+    
+    return jsonify({
+        'success': True,
+        'message': mensagem,
+        'dias_visitados': dias_visitados,
+        'pontos_bonus_disponiveis': pontos_bonus
+    })
+
+@app.route('/api/cliente/checkins', methods=['GET'])
+def listar_checkins_cliente():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    cliente_id = session['cliente_id']
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM checkins
+        WHERE cliente_id = ?
+        ORDER BY data_checkin DESC
+        LIMIT 30
+    ''', (cliente_id,))
+    
+    checkins = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify(checkins)
+
+@app.route('/api/cliente/pode-checkin', methods=['GET'])
+def pode_fazer_checkin():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    cliente_id = session['cliente_id']
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT COUNT(*) FROM checkins
+        WHERE cliente_id = ?
+        AND DATE(data_checkin) = DATE('now')
+    ''', (cliente_id,))
+    
+    checkin_hoje = cursor.fetchone()[0]
+    conn.close()
+    
+    return jsonify({
+        'pode_checkin': checkin_hoje == 0,
+        'ja_fez_checkin': checkin_hoje > 0
+    })
+
+@app.route('/api/produtos', methods=['GET'])
+def listar_produtos():
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    apenas_ativos = request.args.get('ativos', 'false').lower() == 'true'
+    
+    if apenas_ativos:
+        cursor.execute('SELECT * FROM produtos WHERE ativo = 1 ORDER BY nome')
+    else:
+        cursor.execute('SELECT * FROM produtos ORDER BY nome')
+    
+    produtos = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(produtos)
+
+@app.route('/api/produtos', methods=['POST'])
+def cadastrar_produto():
+    if not session.get('admin'):
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    data = request.json
+    nome = data.get('nome')
+    descricao = data.get('descricao', '')
+    pontos = data.get('pontos', 0)
+    
+    if not nome or pontos <= 0:
+        return jsonify({'error': 'Nome e pontos são obrigatórios'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO produtos (nome, descricao, pontos)
+        VALUES (?, ?, ?)
+    ''', (nome, descricao, pontos))
+    conn.commit()
+    produto_id = cursor.lastrowid
+    conn.close()
+    
+    return jsonify({'id': produto_id, 'message': 'Produto cadastrado com sucesso'}), 201
+
+@app.route('/api/produtos/<int:produto_id>', methods=['PUT'])
+def atualizar_produto(produto_id):
+    if not session.get('admin'):
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    data = request.json
+    nome = data.get('nome')
+    descricao = data.get('descricao', '')
+    pontos = data.get('pontos', 0)
+    ativo = data.get('ativo', 1)
+    
+    if not nome or pontos <= 0:
+        return jsonify({'error': 'Nome e pontos são obrigatórios'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE produtos 
+        SET nome = ?, descricao = ?, pontos = ?, ativo = ?
+        WHERE id = ?
+    ''', (nome, descricao, pontos, ativo, produto_id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Produto atualizado com sucesso'})
+
+@app.route('/api/produtos/<int:produto_id>', methods=['DELETE'])
+def deletar_produto(produto_id):
+    if not session.get('admin'):
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM produtos WHERE id = ?', (produto_id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Produto deletado com sucesso'})
+
+@app.route('/api/solicitacoes', methods=['POST'])
+def solicitar_pontos():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    data = request.json
+    produto_id = data.get('produto_id')
+    quantidade = data.get('quantidade', 1)
+    observacao = data.get('observacao', '')
+    
+    if not produto_id or quantidade <= 0:
+        return jsonify({'error': 'Dados inválidos'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM produtos WHERE id = ? AND ativo = 1', (produto_id,))
+    produto = cursor.fetchone()
+    
+    if not produto:
+        conn.close()
+        return jsonify({'error': 'Produto não encontrado ou inativo'}), 404
+    
+    pontos_total = produto['pontos'] * quantidade
+    cliente_id = session['cliente_id']
+    
+    cursor.execute('''
+        INSERT INTO solicitacoes_pontos (cliente_id, produto_id, quantidade, pontos_total, observacao)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (cliente_id, produto_id, quantidade, pontos_total, observacao))
+    conn.commit()
+    solicitacao_id = cursor.lastrowid
+    conn.close()
+    
+    return jsonify({
+        'id': solicitacao_id,
+        'message': 'Solicitação enviada com sucesso! Aguarde a validação do administrador.',
+        'pontos_total': pontos_total
+    }), 201
+
+@app.route('/api/solicitacoes', methods=['GET'])
+def listar_solicitacoes():
+    if not session.get('admin'):
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    status = request.args.get('status', 'pendente')
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if status == 'todas':
+        cursor.execute('''
+            SELECT s.*, c.nome as cliente_nome, c.telefone as cliente_telefone,
+                   p.nome as produto_nome, p.descricao as produto_descricao
+            FROM solicitacoes_pontos s
+            JOIN clientes c ON s.cliente_id = c.id
+            JOIN produtos p ON s.produto_id = p.id
+            ORDER BY s.data_solicitacao DESC
+        ''')
+    else:
+        cursor.execute('''
+            SELECT s.*, c.nome as cliente_nome, c.telefone as cliente_telefone,
+                   p.nome as produto_nome, p.descricao as produto_descricao
+            FROM solicitacoes_pontos s
+            JOIN clientes c ON s.cliente_id = c.id
+            JOIN produtos p ON s.produto_id = p.id
+            WHERE s.status = ?
+            ORDER BY s.data_solicitacao DESC
+        ''', (status,))
+    
+    solicitacoes = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(solicitacoes)
+
+@app.route('/api/solicitacoes/cliente', methods=['GET'])
+def listar_solicitacoes_cliente():
+    if 'cliente_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    cliente_id = session['cliente_id']
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT s.*, p.nome as produto_nome, p.descricao as produto_descricao
+        FROM solicitacoes_pontos s
+        JOIN produtos p ON s.produto_id = p.id
+        WHERE s.cliente_id = ?
+        ORDER BY s.data_solicitacao DESC
+    ''', (cliente_id,))
+    
+    solicitacoes = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(solicitacoes)
+
+@app.route('/api/solicitacoes/<int:solicitacao_id>/validar', methods=['POST'])
+def validar_solicitacao(solicitacao_id):
+    if not session.get('admin'):
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    data = request.json
+    aprovar = data.get('aprovar', False)
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM solicitacoes_pontos WHERE id = ?', (solicitacao_id,))
+    solicitacao = cursor.fetchone()
+    
+    if not solicitacao:
+        conn.close()
+        return jsonify({'error': 'Solicitação não encontrada'}), 404
+    
+    if solicitacao['status'] != 'pendente':
+        conn.close()
+        return jsonify({'error': 'Solicitação já foi processada'}), 400
+    
+    novo_status = 'aprovada' if aprovar else 'rejeitada'
+    
+    cursor.execute('''
+        UPDATE solicitacoes_pontos 
+        SET status = ?, data_validacao = CURRENT_TIMESTAMP, validado_por = 'admin'
+        WHERE id = ?
+    ''', (novo_status, solicitacao_id))
+    
+    if aprovar:
+        cursor.execute('''
+            INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
+            VALUES (?, ?, 'produto', ?, datetime('now', '+90 days'))
+        ''', (solicitacao['cliente_id'], solicitacao['pontos_total'], 
+              f"Produto consumido (Solicitação #{solicitacao_id})"))
+        
+        pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
+        pontos_bonus, dias_visitados = calcular_pontos_frequencia(solicitacao['cliente_id'])
+        
+        if pontos_bonus > 0:
+            cursor.execute('''
+                INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
+                VALUES (?, ?, 'frequencia', ?, datetime('now', '+90 days'))
+            ''', (solicitacao['cliente_id'], pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
+            pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
+        
+        cursor.execute('''
+            UPDATE clientes 
+            SET pontos_totais = ?,
+                nivel = ?,
+                ultima_visita = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (pontos_validos, calcular_nivel(pontos_validos), solicitacao['cliente_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({
+        'message': f'Solicitação {novo_status} com sucesso!',
+        'status': novo_status
+    })
 
 if __name__ == '__main__':
     init_db()
