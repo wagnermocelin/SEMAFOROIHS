@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Semáforo Bar - Sistema de Pontuação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse-yellow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .nivel-verde { animation: pulse-green 2s ease-in-out infinite; }
+        .nivel-amarelo { animation: pulse-yellow 2s ease-in-out infinite; }
+        .nivel-vermelho { animation: pulse-red 2s ease-in-out infinite; }
+        
+        .semaforo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        
+        .badge-verde {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+        }
+        
+        .badge-amarelo {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(251, 191, 36, 0.4);
+        }
+        
+        .badge-vermelho {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.4);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen text-white">
+    
+    <nav class="bg-gray-800/50 backdrop-blur-lg border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <img id="navbar-logo" src="" alt="" class="h-10 w-10 rounded-lg object-cover hidden">
+                    <div class="flex space-x-1">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <h1 id="navbar-nome" class="text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        Semáforo Bar
+                    </h1>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="mostrarSecao('dashboard')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </button>
+                    <button onclick="mostrarSecao('clientes')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-users mr-2"></i>Clientes
+                    </button>
+                    <button onclick="mostrarSecao('ranking')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-trophy mr-2"></i>Ranking
+                    </button>
+                    <button onclick="mostrarSecao('admin')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-purple-600/30">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div id="secao-dashboard" class="secao">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">Total de Clientes</p>
+                            <p class="text-3xl font-bold mt-2" id="stat-total">0</p>
+                        </div>
+                        <i class="fas fa-users text-4xl text-blue-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Nível Verde</p>
+                            <p class="text-3xl font-bold mt-2" id="stat-verde">0</p>
+                        </div>
+                        <i class="fas fa-circle text-4xl text-green-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 shadow-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-100 text-sm font-medium">Nível Amarelo</p>
+                            <p class="text-3xl font-bold mt-2" id="stat-amarelo">0</p>
+                        </div>
+                        <i class="fas fa-circle text-4xl text-yellow-200"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 shadow-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-100 text-sm font-medium">Nível Vermelho</p>
+                            <p class="text-3xl font-bold mt-2" id="stat-vermelho">0</p>
+                        </div>
+                        <i class="fas fa-circle text-4xl text-red-200"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-info-circle mr-3 text-blue-400"></i>
+                    Sistema de Níveis
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-red-500/10 border-2 border-red-500 rounded-lg p-6 text-center">
+                        <i class="fas fa-circle text-5xl text-red-500 mb-4 nivel-vermelho"></i>
+                        <h3 class="text-xl font-bold mb-2">Vermelho</h3>
+                        <p class="text-gray-300">0 - 199 pontos</p>
+                        <p class="text-sm text-gray-400 mt-2">Cliente iniciante</p>
+                    </div>
+                    
+                    <div class="bg-yellow-500/10 border-2 border-yellow-500 rounded-lg p-6 text-center">
+                        <i class="fas fa-circle text-5xl text-yellow-500 mb-4 nivel-amarelo"></i>
+                        <h3 class="text-xl font-bold mb-2">Amarelo</h3>
+                        <p class="text-gray-300">200 - 499 pontos</p>
+                        <p class="text-sm text-gray-400 mt-2">Cliente regular</p>
+                    </div>
+                    
+                    <div class="bg-green-500/10 border-2 border-green-500 rounded-lg p-6 text-center">
+                        <i class="fas fa-circle text-5xl text-green-500 mb-4 nivel-verde"></i>
+                        <h3 class="text-xl font-bold mb-2">Verde</h3>
+                        <p class="text-gray-300">500+ pontos</p>
+                        <p class="text-sm text-gray-400 mt-2">Cliente VIP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="secao-clientes" class="secao hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Gerenciar Clientes</h2>
+                <button onclick="abrirModalNovoCliente()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-6 py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105">
+                    <i class="fas fa-plus mr-2"></i>Novo Cliente
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <input type="text" id="busca-cliente" placeholder="Buscar cliente..." 
+                    class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onkeyup="filtrarClientes()">
+            </div>
+
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-700/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold">Telefone</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold">Nível</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-clientes" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="secao-ranking" class="secao hidden">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold flex items-center">
+                    <i class="fas fa-trophy text-yellow-500 mr-3"></i>
+                    Top 10 Clientes
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4" id="lista-ranking">
+            </div>
+        </div>
+
+        <div id="secao-admin" class="secao hidden">
+            <div id="admin-login" class="max-w-md mx-auto mt-20">
+                <div class="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-shield-alt text-6xl text-purple-500 mb-4"></i>
+                        <h2 class="text-3xl font-bold">Área Administrativa</h2>
+                        <p class="text-gray-400 mt-2">Digite a senha para acessar</p>
+                    </div>
+                    <form id="form-admin-login" onsubmit="fazerLoginAdmin(event)">
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2">Senha</label>
+                            <input type="password" id="senha-admin" required
+                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <button type="submit" 
+                            class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-4 py-3 rounded-lg font-semibold transition">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Entrar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="admin-painel" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold flex items-center">
+                        <i class="fas fa-cog text-purple-500 mr-3"></i>
+                        Painel Administrativo
+                    </h2>
+                    <button onclick="fazerLogoutAdmin()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-store text-blue-400 mr-2"></i>
+                            Configurações do Bar
+                        </h3>
+                        <form id="form-config-bar" onsubmit="salvarConfiguracoes(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Nome do Bar</label>
+                                    <input type="text" id="config-nome-bar" required
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Logo Atual</label>
+                                    <div class="flex items-center space-x-4">
+                                        <img id="preview-logo" src="" alt="Logo" class="h-20 w-20 rounded-lg object-cover border-2 border-gray-600 hidden">
+                                        <div id="no-logo" class="h-20 w-20 rounded-lg bg-gray-700 flex items-center justify-center border-2 border-gray-600">
+                                            <i class="fas fa-image text-gray-500 text-2xl"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Upload Nova Logo</label>
+                                    <input type="file" id="upload-logo" accept="image/*"
+                                        onchange="uploadLogo()"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600">
+                                    <p class="text-xs text-gray-400 mt-1">Formatos: PNG, JPG, GIF, SVG</p>
+                                </div>
+                            </div>
+                            <button type="submit" 
+                                class="w-full mt-6 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 rounded-lg font-semibold transition">
+                                <i class="fas fa-save mr-2"></i>Salvar Configurações
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-sliders-h text-green-400 mr-2"></i>
+                            Níveis de Pontuação
+                        </h3>
+                        <form id="form-config-niveis" onsubmit="salvarConfiguracoes(event)">
+                            <div class="space-y-4">
+                                <div class="bg-red-500/10 border border-red-500 rounded-lg p-4">
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        <i class="fas fa-circle text-red-500 mr-2"></i>
+                                        Vermelho - Mínimo de Pontos
+                                    </label>
+                                    <input type="number" id="config-vermelho" value="0" readonly
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-gray-400">
+                                </div>
+                                <div class="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        <i class="fas fa-circle text-yellow-500 mr-2"></i>
+                                        Amarelo - Mínimo de Pontos
+                                    </label>
+                                    <input type="number" id="config-amarelo" required min="1"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                                </div>
+                                <div class="bg-green-500/10 border border-green-500 rounded-lg p-4">
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        <i class="fas fa-circle text-green-500 mr-2"></i>
+                                        Verde - Mínimo de Pontos
+                                    </label>
+                                    <input type="number" id="config-verde" required min="1"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                            </div>
+                            <button type="submit" 
+                                class="w-full mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-3 rounded-lg font-semibold transition">
+                                <i class="fas fa-save mr-2"></i>Salvar Níveis
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-lock text-red-400 mr-2"></i>
+                            Segurança
+                        </h3>
+                        <form id="form-config-senha" onsubmit="salvarSenha(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Nova Senha Admin</label>
+                                    <input type="password" id="config-nova-senha" minlength="6"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Confirmar Senha</label>
+                                    <input type="password" id="config-confirmar-senha" minlength="6"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                </div>
+                            </div>
+                            <button type="submit" 
+                                class="w-full mt-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-4 py-3 rounded-lg font-semibold transition">
+                                <i class="fas fa-key mr-2"></i>Alterar Senha
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-purple-400 mr-2"></i>
+                            Informações
+                        </h3>
+                        <div class="space-y-3 text-sm text-gray-300">
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                <p>Configure o nome e logo do seu bar para personalizar o sistema</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                <p>Ajuste os níveis de pontuação conforme sua estratégia de fidelização</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                <p>Altere a senha admin regularmente para maior segurança</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 mt-1"></i>
+                                <p>Senha padrão: <code class="bg-gray-700 px-2 py-1 rounded">admin123</code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-novo-cliente" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Novo Cliente</h3>
+                <button onclick="fecharModalNovoCliente()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="form-novo-cliente" onsubmit="cadastrarCliente(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Nome *</label>
+                        <input type="text" id="nome-cliente" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Telefone</label>
+                        <input type="tel" id="telefone-cliente"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="email-cliente"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="fecharModalNovoCliente()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-3 rounded-lg font-semibold transition">
+                        Cadastrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-adicionar-pontos" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Adicionar Pontos</h3>
+                <button onclick="fecharModalPontos()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="form-adicionar-pontos" onsubmit="adicionarPontos(event)">
+                <input type="hidden" id="cliente-id-pontos">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Cliente</label>
+                        <input type="text" id="cliente-nome-pontos" readonly
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Pontos *</label>
+                        <input type="number" id="pontos-valor" required min="1"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tipo *</label>
+                        <select id="pontos-tipo" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="consumo">Consumo</option>
+                            <option value="frequencia">Frequência</option>
+                            <option value="bonus">Bônus</option>
+                            <option value="evento">Evento Especial</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Descrição</label>
+                        <textarea id="pontos-descricao" rows="3"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="fecharModalPontos()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 rounded-lg font-semibold transition">
+                        Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let clientesData = [];
+
+        async function carregarConfiguracoes() {
+            try {
+                const response = await fetch('/api/configuracoes');
+                const config = await response.json();
+                
+                if (config.nome_bar) {
+                    document.getElementById('navbar-nome').textContent = config.nome_bar;
+                    document.getElementById('page-title').textContent = `${config.nome_bar} - Sistema de Pontuação`;
+                }
+                
+                if (config.logo_path) {
+                    const logo = document.getElementById('navbar-logo');
+                    logo.src = config.logo_path;
+                    logo.classList.remove('hidden');
+                }
+                
+                if (document.getElementById('config-nome-bar')) {
+                    document.getElementById('config-nome-bar').value = config.nome_bar || 'Semáforo Bar';
+                    document.getElementById('config-amarelo').value = config.pontos_amarelo_min || 200;
+                    document.getElementById('config-verde').value = config.pontos_verde_min || 500;
+                    
+                    if (config.logo_path) {
+                        const preview = document.getElementById('preview-logo');
+                        preview.src = config.logo_path;
+                        preview.classList.remove('hidden');
+                        document.getElementById('no-logo').classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+
+        function mostrarSecao(secao) {
+            document.querySelectorAll('.secao').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`secao-${secao}`).classList.remove('hidden');
+            
+            if (secao === 'dashboard') {
+                carregarEstatisticas();
+            } else if (secao === 'clientes') {
+                carregarClientes();
+            } else if (secao === 'ranking') {
+                carregarRanking();
+            } else if (secao === 'admin') {
+                carregarConfiguracoes();
+            }
+        }
+
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('/api/estatisticas');
+                const data = await response.json();
+                
+                document.getElementById('stat-total').textContent = data.total_clientes;
+                document.getElementById('stat-verde').textContent = data.clientes_verde;
+                document.getElementById('stat-amarelo').textContent = data.clientes_amarelo;
+                document.getElementById('stat-vermelho').textContent = data.clientes_vermelho;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function carregarClientes() {
+            try {
+                const response = await fetch('/api/clientes');
+                clientesData = await response.json();
+                renderizarClientes(clientesData);
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        function renderizarClientes(clientes) {
+            const lista = document.getElementById('lista-clientes');
+            lista.innerHTML = '';
+            
+            clientes.forEach(cliente => {
+                const nivelClass = `badge-${cliente.nivel}`;
+                const nivelIcon = cliente.nivel === 'verde' ? 'fa-circle' : 
+                                 cliente.nivel === 'amarelo' ? 'fa-circle' : 'fa-circle';
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-700/30 transition';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium">${cliente.nome}</td>
+                    <td class="px-6 py-4 text-gray-300">${cliente.telefone || '-'}</td>
+                    <td class="px-6 py-4 font-bold text-blue-400">${cliente.pontos_totais}</td>
+                    <td class="px-6 py-4">
+                        <span class="semaforo-badge ${nivelClass}">
+                            <i class="fas ${nivelIcon}"></i>
+                            ${cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-2">
+                            <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome}')" 
+                                class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition" title="Adicionar Pontos">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button onclick="verDetalhes(${cliente.id})" 
+                                class="bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="deletarCliente(${cliente.id})" 
+                                class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition" title="Deletar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                lista.appendChild(tr);
+            });
+        }
+
+        function filtrarClientes() {
+            const busca = document.getElementById('busca-cliente').value.toLowerCase();
+            const clientesFiltrados = clientesData.filter(c => 
+                c.nome.toLowerCase().includes(busca) || 
+                (c.telefone && c.telefone.includes(busca))
+            );
+            renderizarClientes(clientesFiltrados);
+        }
+
+        async function carregarRanking() {
+            try {
+                const response = await fetch('/api/ranking');
+                const ranking = await response.json();
+                
+                const lista = document.getElementById('lista-ranking');
+                lista.innerHTML = '';
+                
+                ranking.forEach((cliente, index) => {
+                    const posicao = index + 1;
+                    const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : `${posicao}º`;
+                    const nivelClass = `badge-${cliente.nivel}`;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-lg border border-gray-700 card-hover';
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="text-4xl font-bold">${medalha}</div>
+                                <div>
+                                    <h3 class="text-xl font-bold">${cliente.nome}</h3>
+                                    <p class="text-gray-400">${cliente.pontos_totais} pontos</p>
+                                </div>
+                            </div>
+                            <span class="semaforo-badge ${nivelClass}">
+                                <i class="fas fa-circle"></i>
+                                ${cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1)}
+                            </span>
+                        </div>
+                    `;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+            }
+        }
+
+        function abrirModalNovoCliente() {
+            document.getElementById('modal-novo-cliente').classList.remove('hidden');
+            document.getElementById('modal-novo-cliente').classList.add('flex');
+        }
+
+        function fecharModalNovoCliente() {
+            document.getElementById('modal-novo-cliente').classList.add('hidden');
+            document.getElementById('modal-novo-cliente').classList.remove('flex');
+            document.getElementById('form-novo-cliente').reset();
+        }
+
+        async function cadastrarCliente(event) {
+            event.preventDefault();
+            
+            const nome = document.getElementById('nome-cliente').value;
+            const telefone = document.getElementById('telefone-cliente').value;
+            const email = document.getElementById('email-cliente').value;
+            
+            try {
+                const response = await fetch('/api/clientes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, telefone, email })
+                });
+                
+                if (response.ok) {
+                    fecharModalNovoCliente();
+                    carregarClientes();
+                    alert('Cliente cadastrado com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar cliente:', error);
+                alert('Erro ao cadastrar cliente');
+            }
+        }
+
+        function abrirModalPontos(clienteId, clienteNome) {
+            document.getElementById('cliente-id-pontos').value = clienteId;
+            document.getElementById('cliente-nome-pontos').value = clienteNome;
+            document.getElementById('modal-adicionar-pontos').classList.remove('hidden');
+            document.getElementById('modal-adicionar-pontos').classList.add('flex');
+        }
+
+        function fecharModalPontos() {
+            document.getElementById('modal-adicionar-pontos').classList.add('hidden');
+            document.getElementById('modal-adicionar-pontos').classList.remove('flex');
+            document.getElementById('form-adicionar-pontos').reset();
+        }
+
+        async function adicionarPontos(event) {
+            event.preventDefault();
+            
+            const clienteId = document.getElementById('cliente-id-pontos').value;
+            const pontos = parseInt(document.getElementById('pontos-valor').value);
+            const tipo = document.getElementById('pontos-tipo').value;
+            const descricao = document.getElementById('pontos-descricao').value;
+            
+            try {
+                const response = await fetch('/api/pontuacao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cliente_id: clienteId, pontos, tipo, descricao })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    fecharModalPontos();
+                    carregarClientes();
+                    alert(`Pontos adicionados! Total: ${data.pontos_totais} - Nível: ${data.nivel}`);
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar pontos:', error);
+                alert('Erro ao adicionar pontos');
+            }
+        }
+
+        async function deletarCliente(clienteId) {
+            if (!confirm('Tem certeza que deseja deletar este cliente?')) return;
+            
+            try {
+                const response = await fetch(`/api/clientes/${clienteId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    carregarClientes();
+                    alert('Cliente deletado com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao deletar cliente:', error);
+                alert('Erro ao deletar cliente');
+            }
+        }
+
+        async function verDetalhes(clienteId) {
+            try {
+                const response = await fetch(`/api/clientes/${clienteId}`);
+                const cliente = await response.json();
+                
+                let historico = '<h4 class="font-bold mb-2">Histórico de Pontuações:</h4>';
+                if (cliente.historico && cliente.historico.length > 0) {
+                    cliente.historico.forEach(p => {
+                        historico += `<div class="text-sm mb-1">• ${p.pontos} pts - ${p.tipo} - ${p.data}</div>`;
+                    });
+                } else {
+                    historico += '<p class="text-sm text-gray-400">Nenhuma pontuação registrada</p>';
+                }
+                
+                alert(`Cliente: ${cliente.nome}\nPontos: ${cliente.pontos_totais}\nNível: ${cliente.nivel}\n\n${historico}`);
+            } catch (error) {
+                console.error('Erro ao carregar detalhes:', error);
+            }
+        }
+
+        async function fazerLoginAdmin(event) {
+            event.preventDefault();
+            const senha = document.getElementById('senha-admin').value;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senha })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('admin-login').classList.add('hidden');
+                    document.getElementById('admin-painel').classList.remove('hidden');
+                    carregarConfiguracoes();
+                } else {
+                    alert('Senha incorreta!');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer login:', error);
+                alert('Erro ao fazer login');
+            }
+        }
+
+        async function fazerLogoutAdmin() {
+            try {
+                await fetch('/api/admin/logout', { method: 'POST' });
+                document.getElementById('admin-painel').classList.add('hidden');
+                document.getElementById('admin-login').classList.remove('hidden');
+                document.getElementById('form-admin-login').reset();
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        }
+
+        async function salvarConfiguracoes(event) {
+            event.preventDefault();
+            
+            const nomeBar = document.getElementById('config-nome-bar').value;
+            const pontosAmarelo = parseInt(document.getElementById('config-amarelo').value);
+            const pontosVerde = parseInt(document.getElementById('config-verde').value);
+            
+            if (pontosVerde <= pontosAmarelo) {
+                alert('O nível verde deve ter mais pontos que o amarelo!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/configuracoes', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome_bar: nomeBar,
+                        pontos_vermelho_min: 0,
+                        pontos_amarelo_min: pontosAmarelo,
+                        pontos_verde_min: pontosVerde
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Configurações salvas com sucesso!');
+                    carregarConfiguracoes();
+                } else {
+                    alert('Erro ao salvar configurações');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações');
+            }
+        }
+
+        async function salvarSenha(event) {
+            event.preventDefault();
+            
+            const novaSenha = document.getElementById('config-nova-senha').value;
+            const confirmarSenha = document.getElementById('config-confirmar-senha').value;
+            
+            if (!novaSenha || !confirmarSenha) {
+                alert('Preencha ambos os campos de senha!');
+                return;
+            }
+            
+            if (novaSenha !== confirmarSenha) {
+                alert('As senhas não coincidem!');
+                return;
+            }
+            
+            if (novaSenha.length < 6) {
+                alert('A senha deve ter no mínimo 6 caracteres!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/configuracoes', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome_bar: document.getElementById('config-nome-bar').value,
+                        pontos_vermelho_min: 0,
+                        pontos_amarelo_min: parseInt(document.getElementById('config-amarelo').value),
+                        pontos_verde_min: parseInt(document.getElementById('config-verde').value),
+                        senha_admin: novaSenha
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Senha alterada com sucesso!');
+                    document.getElementById('form-config-senha').reset();
+                } else {
+                    alert('Erro ao alterar senha');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar senha:', error);
+                alert('Erro ao alterar senha');
+            }
+        }
+
+        async function uploadLogo() {
+            const fileInput = document.getElementById('upload-logo');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('logo', file);
+            
+            try {
+                const response = await fetch('/api/admin/upload-logo', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Logo enviada com sucesso!');
+                    const preview = document.getElementById('preview-logo');
+                    preview.src = data.logo_path;
+                    preview.classList.remove('hidden');
+                    document.getElementById('no-logo').classList.add('hidden');
+                    carregarConfiguracoes();
+                } else {
+                    alert(data.error || 'Erro ao enviar logo');
+                }
+            } catch (error) {
+                console.error('Erro ao enviar logo:', error);
+                alert('Erro ao enviar logo');
+            }
+        }
+
+        carregarEstatisticas();
+        carregarConfiguracoes();
+    </script>
+</body>
+</html>
