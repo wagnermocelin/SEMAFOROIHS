@@ -68,37 +68,83 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .mobile-hidden {
+                display: none !important;
+            }
+            
+            .mobile-card {
+                display: block !important;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem !important;
+            }
+            
+            .mobile-p-2 {
+                padding: 0.5rem !important;
+            }
+            
+            .mobile-menu {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(31, 41, 55, 0.95);
+                backdrop-filter: blur(10px);
+                border-top: 1px solid rgba(75, 85, 99, 0.5);
+                padding: 0.5rem;
+                z-index: 50;
+            }
+            
+            .mobile-menu-btn {
+                flex: 1;
+                padding: 0.75rem 0.5rem;
+                text-align: center;
+                font-size: 0.75rem;
+            }
+            
+            .mobile-menu-btn i {
+                display: block;
+                font-size: 1.25rem;
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen text-white">
     
     <nav class="bg-gray-800/50 backdrop-blur-lg border-b border-gray-700 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <img id="navbar-logo" src="" alt="" class="h-10 w-10 rounded-lg object-cover hidden">
+        <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+            <div class="flex items-center justify-between h-14 sm:h-16">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <img id="navbar-logo" src="" alt="" class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover hidden">
                     <div class="flex space-x-1">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div class="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                     </div>
-                    <h1 id="navbar-nome" class="text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                    <h1 id="navbar-nome" class="text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
                         Semáforo Bar
                     </h1>
                 </div>
-                <div class="flex space-x-4">
-                    <a href="/cliente" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-green-600/30 flex items-center">
-                        <i class="fas fa-user-circle mr-2"></i>Área do Cliente
+                <div class="flex space-x-1 sm:space-x-4">
+                    <a href="/cliente" class="px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-green-600/30 flex items-center text-xs sm:text-base">
+                        <i class="fas fa-user-circle sm:mr-2"></i>
+                        <span class="hidden sm:inline">Área do Cliente</span>
                     </a>
-                    <button onclick="mostrarSecao('admin')" class="px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-purple-600/30">
-                        <i class="fas fa-cog mr-2"></i>Admin
+                    <button onclick="mostrarSecao('admin')" class="px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-700 transition bg-purple-600/30 text-xs sm:text-base">
+                        <i class="fas fa-cog sm:mr-2"></i>
+                        <span class="hidden sm:inline">Admin</span>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 pb-20 sm:pb-8">
         
         <div id="secao-ranking" class="secao">
             <div class="mb-6">
@@ -147,31 +193,32 @@
             </div>
 
             <div id="admin-painel" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold flex items-center">
-                        <i class="fas fa-cog text-purple-500 mr-3"></i>
-                        Painel Administrativo
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                    <h2 class="text-2xl sm:text-3xl font-bold flex items-center">
+                        <i class="fas fa-cog text-purple-500 mr-2 sm:mr-3"></i>
+                        <span class="hidden sm:inline">Painel Administrativo</span>
+                        <span class="sm:hidden">Admin</span>
                     </h2>
-                    <button onclick="fazerLogoutAdmin()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                    <button onclick="fazerLogoutAdmin()" class="bg-red-500 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition text-sm sm:text-base">
+                        <i class="fas fa-sign-out-alt mr-1 sm:mr-2"></i>Sair
                     </button>
                 </div>
 
-                <div class="mb-6 flex space-x-2">
-                    <button onclick="mostrarAbaAdmin('dashboard')" id="btn-admin-dashboard" class="px-4 py-2 rounded-lg bg-blue-500 font-semibold">
-                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                <div class="mb-4 sm:mb-6 flex flex-wrap gap-2">
+                    <button onclick="mostrarAbaAdmin('dashboard')" id="btn-admin-dashboard" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-blue-500 font-semibold text-xs sm:text-base">
+                        <i class="fas fa-chart-line mr-1 sm:mr-2"></i><span class="hidden sm:inline">Dashboard</span><span class="sm:hidden">Dash</span>
                     </button>
-                    <button onclick="mostrarAbaAdmin('clientes')" id="btn-admin-clientes" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
-                        <i class="fas fa-users mr-2"></i>Clientes
+                    <button onclick="mostrarAbaAdmin('clientes')" id="btn-admin-clientes" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-xs sm:text-base">
+                        <i class="fas fa-users mr-1 sm:mr-2"></i>Clientes
                     </button>
-                    <button onclick="mostrarAbaAdmin('produtos')" id="btn-admin-produtos" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
-                        <i class="fas fa-box mr-2"></i>Produtos
+                    <button onclick="mostrarAbaAdmin('produtos')" id="btn-admin-produtos" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-xs sm:text-base">
+                        <i class="fas fa-box mr-1 sm:mr-2"></i>Produtos
                     </button>
-                    <button onclick="mostrarAbaAdmin('solicitacoes')" id="btn-admin-solicitacoes" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
-                        <i class="fas fa-clipboard-check mr-2"></i>Validar Solicitações
+                    <button onclick="mostrarAbaAdmin('solicitacoes')" id="btn-admin-solicitacoes" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-xs sm:text-base">
+                        <i class="fas fa-clipboard-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Validar Solicitações</span><span class="sm:hidden">Validar</span>
                     </button>
-                    <button onclick="mostrarAbaAdmin('config')" id="btn-admin-config" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
-                        <i class="fas fa-cog mr-2"></i>Configurações
+                    <button onclick="mostrarAbaAdmin('config')" id="btn-admin-config" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-xs sm:text-base">
+                        <i class="fas fa-cog mr-1 sm:mr-2"></i>Config
                     </button>
                 </div>
 
@@ -249,9 +296,9 @@
                 </div>
 
                 <div id="admin-aba-clientes" style="display: none;">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-bold">Gerenciar Clientes</h2>
-                        <button onclick="abrirModalNovoCliente()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-6 py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                        <h2 class="text-2xl sm:text-3xl font-bold">Gerenciar Clientes</h2>
+                        <button onclick="abrirModalNovoCliente()" class="w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105 text-sm sm:text-base">
                             <i class="fas fa-plus mr-2"></i>Novo Cliente
                         </button>
                     </div>
@@ -262,20 +309,27 @@
                             onkeyup="filtrarClientes()">
                     </div>
 
-                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden" style="display: block !important; visibility: visible !important;">
-                        <div class="overflow-x-auto" style="display: block !important; visibility: visible !important;">
-                            <table class="w-full" style="display: table !important; visibility: visible !important; width: 100% !important;">
+                    <!-- Versão Desktop - Tabela -->
+                    <div class="hidden md:block bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
                                 <thead class="bg-gray-700/50">
                                     <tr>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Telefone</th>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Nível</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="lista-clientes" style="display: table-row-group !important; visibility: visible !important;">
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                    
+                    <!-- Versão Mobile - Cards -->
+                    <div id="lista-clientes-mobile" class="md:hidden space-y-3">
                     </div>
                 </div>
 
@@ -718,23 +772,26 @@
 
         function renderizarClientes(clientes) {
             const lista = document.getElementById('lista-clientes');
+            const listaMobile = document.getElementById('lista-clientes-mobile');
             
-            if (!lista) {
-                console.error('Elemento lista-clientes não encontrado!');
+            if (!lista || !listaMobile) {
+                console.error('Elementos de lista não encontrados!');
                 return;
             }
             
             if (clientes.length === 0) {
                 lista.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhum cliente cadastrado</td></tr>';
+                listaMobile.innerHTML = '<div class="bg-gray-800/50 rounded-lg p-6 text-center text-gray-400">Nenhum cliente cadastrado</div>';
                 return;
             }
             
-            let html = '';
+            // Renderizar tabela desktop
+            let htmlDesktop = '';
             clientes.forEach(cliente => {
                 const nivelClass = 'badge-' + cliente.nivel;
                 const nivelTexto = cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1);
                 
-                html += `
+                htmlDesktop += `
                     <tr style="background-color: rgba(55, 65, 81, 0.3);">
                         <td class="px-6 py-4 text-white font-medium">${cliente.nome}</td>
                         <td class="px-6 py-4 text-gray-300">${cliente.telefone || '-'}</td>
@@ -746,7 +803,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">
-                                <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}'  )" 
+                                <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" 
                                     class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition"
                                     title="Adicionar Pontos">
                                     <i class="fas fa-plus"></i>
@@ -767,7 +824,47 @@
                 `;
             });
             
-            lista.innerHTML = html;
+            // Renderizar cards mobile
+            let htmlMobile = '';
+            clientes.forEach(cliente => {
+                const nivelClass = 'badge-' + cliente.nivel;
+                const nivelTexto = cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1);
+                
+                htmlMobile += `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-lg p-4 shadow-lg border border-gray-700">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-white mb-1">${cliente.nome}</h3>
+                                <p class="text-sm text-gray-400">${cliente.telefone || 'Sem telefone'}</p>
+                            </div>
+                            <span class="semaforo-badge ${nivelClass} text-xs">
+                                <i class="fas fa-circle"></i> ${nivelTexto}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-700">
+                            <span class="text-gray-400 text-sm">Pontos</span>
+                            <span class="text-blue-400 font-bold text-xl">${cliente.pontos_totais}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" 
+                                class="flex-1 bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition text-sm">
+                                <i class="fas fa-plus mr-1"></i> Pontos
+                            </button>
+                            <button onclick="verDetalhes(${cliente.id})" 
+                                class="flex-1 bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition text-sm">
+                                <i class="fas fa-eye mr-1"></i> Detalhes
+                            </button>
+                            <button onclick="deletarCliente(${cliente.id})" 
+                                class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition text-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            lista.innerHTML = htmlDesktop;
+            listaMobile.innerHTML = htmlMobile;
         }
 
         function filtrarClientes() {
