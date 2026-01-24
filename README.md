@@ -147,6 +147,17 @@ SEMAFORO/
 - Sessões seguras com Flask
 - CORS configurado para desenvolvimento
 
+## 🌐 Deploy na Vercel
+
+Para fazer deploy na Vercel, consulte o arquivo [DEPLOY.md](DEPLOY.md) com instruções detalhadas.
+
+**Resumo rápido:**
+1. Conecte seu repositório GitHub à Vercel
+2. Configure as variáveis de ambiente necessárias
+3. Deploy automático a cada push
+
+⚠️ **Importante**: Para produção, considere migrar de SQLite para um banco de dados em nuvem (PostgreSQL, MySQL, etc.)
+
 ## 📝 Licença
 
 Projeto livre para uso pessoal e comercial.

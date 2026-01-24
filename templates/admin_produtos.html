@@ -1,0 +1,401 @@
+<!-- Seção de Produtos no Admin -->
+<div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold flex items-center">
+            <i class="fas fa-box text-orange-400 mr-2"></i>
+            Gerenciar Produtos
+        </h3>
+        <button onclick="abrirModalNovoProduto()" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-4 py-3 rounded-lg font-semibold shadow-lg transition">
+            <i class="fas fa-plus mr-2"></i>Novo Produto
+        </button>
+    </div>
+    
+    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-700/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-semibold">Produto</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold">Descrição</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-produtos" class="divide-y divide-gray-700">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold flex items-center">
+            <i class="fas fa-clipboard-check text-green-400 mr-2"></i>
+            Validar Solicitações
+        </h3>
+        <div class="flex space-x-2">
+            <button onclick="filtrarSolicitacoes('pendente')" id="btn-pendente" class="px-4 py-2 rounded-lg bg-yellow-500 font-semibold">
+                Pendentes
+            </button>
+            <button onclick="filtrarSolicitacoes('aprovada')" id="btn-aprovada" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                Aprovadas
+            </button>
+            <button onclick="filtrarSolicitacoes('rejeitada')" id="btn-rejeitada" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                Rejeitadas
+            </button>
+            <button onclick="filtrarSolicitacoes('todas')" id="btn-todas" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                Todas
+            </button>
+        </div>
+    </div>
+    
+    <div id="lista-solicitacoes" class="grid grid-cols-1 gap-4">
+    </div>
+</div>
+
+<!-- Modal Novo Produto -->
+<div id="modal-novo-produto" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold">Novo Produto</h3>
+            <button onclick="fecharModalNovoProduto()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <form id="form-novo-produto" onsubmit="cadastrarProduto(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nome do Produto *</label>
+                    <input type="text" id="produto-nome" required
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Descrição</label>
+                    <textarea id="produto-descricao" rows="3"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Pontos *</label>
+                    <input type="number" id="produto-pontos" required min="1"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button type="button" onclick="fecharModalNovoProduto()" 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                    class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-4 py-3 rounded-lg font-semibold transition">
+                    Cadastrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Produto -->
+<div id="modal-editar-produto" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold">Editar Produto</h3>
+            <button onclick="fecharModalEditarProduto()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <form id="form-editar-produto" onsubmit="salvarEdicaoProduto(event)">
+            <input type="hidden" id="edit-produto-id">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nome do Produto *</label>
+                    <input type="text" id="edit-produto-nome" required
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Descrição</label>
+                    <textarea id="edit-produto-descricao" rows="3"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Pontos *</label>
+                    <input type="number" id="edit-produto-pontos" required min="1"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="edit-produto-ativo" class="w-5 h-5 rounded">
+                        <span class="text-sm font-medium">Produto Ativo</span>
+                    </label>
+                </div>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button type="button" onclick="fecharModalEditarProduto()" 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                    class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 rounded-lg font-semibold transition">
+                    Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let statusFiltroAtual = 'pendente';
+
+async function carregarProdutos() {
+    try {
+        const response = await fetch('/api/produtos');
+        const produtos = await response.json();
+        
+        const lista = document.getElementById('lista-produtos');
+        lista.innerHTML = '';
+        
+        produtos.forEach(produto => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-700/30 transition';
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-medium">${produto.nome}</td>
+                <td class="px-6 py-4 text-gray-300">${produto.descricao || '-'}</td>
+                <td class="px-6 py-4 font-bold text-orange-400">${produto.pontos} pts</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold ${produto.ativo ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                        ${produto.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex space-x-2">
+                        <button onclick="editarProduto(${produto.id})" 
+                            class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deletarProduto(${produto.id})" 
+                            class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg transition" title="Deletar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            lista.appendChild(tr);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+    }
+}
+
+async function carregarSolicitacoes(status = 'pendente') {
+    try {
+        const response = await fetch(`/api/solicitacoes?status=${status}`);
+        const solicitacoes = await response.json();
+        
+        const lista = document.getElementById('lista-solicitacoes');
+        lista.innerHTML = '';
+        
+        if (solicitacoes.length === 0) {
+            lista.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma solicitação encontrada</p>';
+            return;
+        }
+        
+        solicitacoes.forEach(sol => {
+            const data = new Date(sol.data_solicitacao);
+            const statusClass = sol.status === 'aprovada' ? 'bg-green-500/20 text-green-400 border-green-500' :
+                               sol.status === 'rejeitada' ? 'bg-red-500/20 text-red-400 border-red-500' :
+                               'bg-yellow-500/20 text-yellow-400 border-yellow-500';
+            
+            const div = document.createElement('div');
+            div.className = 'bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700';
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="text-lg font-bold text-blue-400">${sol.cliente_nome}</h4>
+                        <p class="text-sm text-gray-400">${sol.cliente_telefone}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold border ${statusClass}">
+                        ${sol.status.toUpperCase()}
+                    </span>
+                </div>
+                <div class="bg-gray-700/50 rounded-lg p-4 mb-4">
+                    <p class="font-bold text-orange-400">${sol.produto_nome}</p>
+                    <p class="text-sm text-gray-400">${sol.produto_descricao || ''}</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-sm">Quantidade: <span class="font-bold">${sol.quantidade}</span></span>
+                        <span class="text-lg font-bold text-green-400">+${sol.pontos_total} pontos</span>
+                    </div>
+                    ${sol.observacao ? `<p class="text-xs text-gray-500 mt-2">Obs: ${sol.observacao}</p>` : ''}
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-400">
+                    <span><i class="fas fa-calendar mr-1"></i>${data.toLocaleString('pt-BR')}</span>
+                    ${sol.status === 'pendente' ? `
+                        <div class="flex space-x-2">
+                            <button onclick="validarSolicitacao(${sol.id}, false)" 
+                                class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition font-semibold">
+                                <i class="fas fa-times mr-1"></i>Rejeitar
+                            </button>
+                            <button onclick="validarSolicitacao(${sol.id}, true)" 
+                                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg transition font-semibold">
+                                <i class="fas fa-check mr-1"></i>Aprovar
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            lista.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar solicitações:', error);
+    }
+}
+
+function filtrarSolicitacoes(status) {
+    statusFiltroAtual = status;
+    
+    ['btn-pendente', 'btn-aprovada', 'btn-rejeitada', 'btn-todas'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('bg-yellow-500', 'bg-green-500', 'bg-red-500', 'bg-blue-500');
+        btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+    });
+    
+    const btnAtual = document.getElementById(`btn-${status}`);
+    btnAtual.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+    
+    if (status === 'pendente') btnAtual.classList.add('bg-yellow-500');
+    else if (status === 'aprovada') btnAtual.classList.add('bg-green-500');
+    else if (status === 'rejeitada') btnAtual.classList.add('bg-red-500');
+    else btnAtual.classList.add('bg-blue-500');
+    
+    carregarSolicitacoes(status);
+}
+
+function abrirModalNovoProduto() {
+    document.getElementById('modal-novo-produto').classList.remove('hidden');
+    document.getElementById('modal-novo-produto').classList.add('flex');
+}
+
+function fecharModalNovoProduto() {
+    document.getElementById('modal-novo-produto').classList.add('hidden');
+    document.getElementById('modal-novo-produto').classList.remove('flex');
+    document.getElementById('form-novo-produto').reset();
+}
+
+async function cadastrarProduto(event) {
+    event.preventDefault();
+    
+    const nome = document.getElementById('produto-nome').value;
+    const descricao = document.getElementById('produto-descricao').value;
+    const pontos = parseInt(document.getElementById('produto-pontos').value);
+    
+    try {
+        const response = await fetch('/api/produtos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, descricao, pontos })
+        });
+        
+        if (response.ok) {
+            fecharModalNovoProduto();
+            carregarProdutos();
+            alert('Produto cadastrado com sucesso!');
+        }
+    } catch (error) {
+        console.error('Erro ao cadastrar produto:', error);
+        alert('Erro ao cadastrar produto');
+    }
+}
+
+async function editarProduto(produtoId) {
+    try {
+        const response = await fetch('/api/produtos');
+        const produtos = await response.json();
+        const produto = produtos.find(p => p.id === produtoId);
+        
+        if (produto) {
+            document.getElementById('edit-produto-id').value = produto.id;
+            document.getElementById('edit-produto-nome').value = produto.nome;
+            document.getElementById('edit-produto-descricao').value = produto.descricao || '';
+            document.getElementById('edit-produto-pontos').value = produto.pontos;
+            document.getElementById('edit-produto-ativo').checked = produto.ativo === 1;
+            
+            document.getElementById('modal-editar-produto').classList.remove('hidden');
+            document.getElementById('modal-editar-produto').classList.add('flex');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar produto:', error);
+    }
+}
+
+function fecharModalEditarProduto() {
+    document.getElementById('modal-editar-produto').classList.add('hidden');
+    document.getElementById('modal-editar-produto').classList.remove('flex');
+}
+
+async function salvarEdicaoProduto(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('edit-produto-id').value;
+    const nome = document.getElementById('edit-produto-nome').value;
+    const descricao = document.getElementById('edit-produto-descricao').value;
+    const pontos = parseInt(document.getElementById('edit-produto-pontos').value);
+    const ativo = document.getElementById('edit-produto-ativo').checked ? 1 : 0;
+    
+    try {
+        const response = await fetch(`/api/produtos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, descricao, pontos, ativo })
+        });
+        
+        if (response.ok) {
+            fecharModalEditarProduto();
+            carregarProdutos();
+            alert('Produto atualizado com sucesso!');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar produto:', error);
+        alert('Erro ao atualizar produto');
+    }
+}
+
+async function deletarProduto(produtoId) {
+    if (!confirm('Tem certeza que deseja deletar este produto?')) return;
+    
+    try {
+        const response = await fetch(`/api/produtos/${produtoId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            carregarProdutos();
+            alert('Produto deletado com sucesso!');
+        }
+    } catch (error) {
+        console.error('Erro ao deletar produto:', error);
+        alert('Erro ao deletar produto');
+    }
+}
+
+async function validarSolicitacao(solicitacaoId, aprovar) {
+    const acao = aprovar ? 'aprovar' : 'rejeitar';
+    if (!confirm(`Tem certeza que deseja ${acao} esta solicitação?`)) return;
+    
+    try {
+        const response = await fetch(`/api/solicitacoes/${solicitacaoId}/validar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aprovar })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message);
+            carregarSolicitacoes(statusFiltroAtual);
+        }
+    } catch (error) {
+        console.error('Erro ao validar solicitação:', error);
+        alert('Erro ao validar solicitação');
+    }
+}
+</script>

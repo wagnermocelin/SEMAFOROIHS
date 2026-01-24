@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Área do Cliente - Semáforo Bar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse-yellow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .nivel-verde { animation: pulse-green 2s ease-in-out infinite; }
+        .nivel-amarelo { animation: pulse-yellow 2s ease-in-out infinite; }
+        .nivel-vermelho { animation: pulse-red 2s ease-in-out infinite; }
+        
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen text-white">
+    
+    <nav class="bg-gray-800/50 backdrop-blur-lg border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <img id="navbar-logo" src="" alt="" class="h-10 w-10 rounded-lg object-cover hidden">
+                    <div class="flex space-x-1">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <h1 id="navbar-nome" class="text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        Semáforo Bar
+                    </h1>
+                </div>
+                <div id="nav-logado" class="hidden flex items-center space-x-4">
+                    <span class="text-gray-300">Olá, <span id="nome-usuario" class="font-bold"></span>!</span>
+                    <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div id="tela-login" class="max-w-md mx-auto mt-20">
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700">
+                <div class="text-center mb-6">
+                    <i class="fas fa-user-circle text-6xl text-blue-500 mb-4"></i>
+                    <h2 class="text-3xl font-bold">Área do Cliente</h2>
+                    <p class="text-gray-400 mt-2">Acesse sua conta para ver seus pontos</p>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex space-x-2">
+                        <button onclick="mostrarAba('login')" id="btn-login" class="flex-1 py-2 px-4 rounded-lg bg-blue-500 font-semibold">
+                            Login
+                        </button>
+                        <button onclick="mostrarAba('definir-senha')" id="btn-definir" class="flex-1 py-2 px-4 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold">
+                            Definir Senha
+                        </button>
+                    </div>
+                </div>
+
+                <div id="aba-login">
+                    <form id="form-login" onsubmit="fazerLogin(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Telefone</label>
+                                <input type="tel" id="login-telefone" required placeholder="(00) 00000-0000"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Senha (opcional)</label>
+                                <input type="password" id="login-senha" placeholder="Digite sua senha se já cadastrou"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-400 mt-1">Se ainda não tem senha, deixe em branco</p>
+                            </div>
+                        </div>
+                        <button type="submit" 
+                            class="w-full mt-6 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-3 rounded-lg font-semibold transition">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Entrar
+                        </button>
+                    </form>
+                </div>
+
+                <div id="aba-definir-senha" class="hidden">
+                    <form id="form-definir-senha" onsubmit="definirSenha(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Telefone Cadastrado</label>
+                                <input type="tel" id="def-telefone" required placeholder="(00) 00000-0000"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Nova Senha</label>
+                                <input type="password" id="def-senha" required minlength="4" placeholder="Mínimo 4 caracteres"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Confirmar Senha</label>
+                                <input type="password" id="def-confirmar" required minlength="4"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <button type="submit" 
+                            class="w-full mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-3 rounded-lg font-semibold transition">
+                            <i class="fas fa-key mr-2"></i>Definir Senha
+                        </button>
+                    </form>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <a href="/" class="text-blue-400 hover:text-blue-300 text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Voltar para o sistema
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="tela-perfil" class="hidden">
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Meu Perfil</h2>
+                    <p class="text-gray-400">Acompanhe seus pontos e histórico de consumo</p>
+                </div>
+                <button id="btn-checkin" onclick="abrirModalCheckin()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-6 py-3 rounded-lg font-semibold shadow-lg transition">
+                    <i class="fas fa-map-marker-check mr-2"></i>Fazer Check-in
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold" id="perfil-nome"></h3>
+                                <p class="text-gray-400" id="perfil-telefone"></p>
+                                <p class="text-gray-400" id="perfil-email"></p>
+                            </div>
+                            <div id="perfil-badge" class="text-center">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium">Progresso para o próximo nível</span>
+                                <span class="text-sm font-bold" id="progresso-texto"></span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+                                <div id="barra-progresso" class="progress-bar h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4 text-center">
+                                <i class="fas fa-star text-3xl text-blue-400 mb-2"></i>
+                                <p class="text-sm text-gray-400">Pontos Válidos</p>
+                                <p class="text-3xl font-bold" id="perfil-pontos">0</p>
+                                <p class="text-xs text-gray-500 mt-1">Válidos por 90 dias</p>
+                            </div>
+                            <div class="bg-red-500/10 border border-red-500 rounded-lg p-4 text-center">
+                                <i class="fas fa-clock text-3xl text-red-400 mb-2"></i>
+                                <p class="text-sm text-gray-400">Pontos Expirados</p>
+                                <p class="text-2xl font-bold" id="perfil-expirados">0</p>
+                            </div>
+                            <div class="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
+                                <i class="fas fa-gift text-3xl text-green-400 mb-2"></i>
+                                <p class="text-sm text-gray-400">Bônus Disponível</p>
+                                <p class="text-2xl font-bold" id="perfil-bonus">0</p>
+                                <p class="text-xs text-gray-500 mt-1" id="perfil-dias-mes">0 visitas/mês</p>
+                            </div>
+                            <div class="bg-purple-500/10 border border-purple-500 rounded-lg p-4 text-center">
+                                <i class="fas fa-calendar text-3xl text-purple-400 mb-2"></i>
+                                <p class="text-sm text-gray-400">Última Visita</p>
+                                <p class="text-sm font-bold" id="perfil-visita">-</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
+                            <h4 class="font-bold text-yellow-400 mb-2 flex items-center">
+                                <i class="fas fa-trophy mr-2"></i>
+                                Sistema de Bônus por Frequência
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                <div class="text-center">
+                                    <p class="font-bold">5+ visitas</p>
+                                    <p class="text-green-400">+25 pts</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="font-bold">10+ visitas</p>
+                                    <p class="text-green-400">+50 pts</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="font-bold">15+ visitas</p>
+                                    <p class="text-green-400">+75 pts</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="font-bold">20+ visitas</p>
+                                    <p class="text-green-400">+100 pts</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2 text-center">Bônus calculado automaticamente a cada nova pontuação (últimos 30 dias)</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-shopping-cart text-orange-400 mr-2"></i>
+                            Solicitar Pontos
+                        </h3>
+                        <p class="text-sm text-gray-400 mb-4">Selecione um produto que você consumiu e solicite seus pontos!</p>
+                        <form id="form-solicitar-pontos" onsubmit="solicitarPontos(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Produto *</label>
+                                    <select id="produto-select" required onchange="atualizarPontosProduto()"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        <option value="">Selecione um produto</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Quantidade *</label>
+                                    <input type="number" id="quantidade-input" required min="1" value="1" onchange="atualizarPontosProduto()"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Observação (opcional)</label>
+                                    <textarea id="observacao-input" rows="2" placeholder="Ex: Mesa 5, Garçom João"
+                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                                </div>
+                                <div class="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
+                                    <p class="text-sm text-gray-400">Total de pontos desta solicitação:</p>
+                                    <p class="text-3xl font-bold text-green-400" id="pontos-preview">0 pts</p>
+                                </div>
+                            </div>
+                            <button type="submit" 
+                                class="w-full mt-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-4 py-3 rounded-lg font-semibold transition">
+                                <i class="fas fa-paper-plane mr-2"></i>Enviar Solicitação
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-clipboard-list text-purple-400 mr-2"></i>
+                            Minhas Solicitações
+                        </h3>
+                        <div id="minhas-solicitacoes" class="space-y-3 max-h-96 overflow-y-auto">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-map-marker-alt text-green-400 mr-2"></i>
+                            Histórico de Check-ins
+                        </h3>
+                        <div id="historico-checkins" class="space-y-3 max-h-64 overflow-y-auto">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-history text-blue-400 mr-2"></i>
+                            Histórico de Pontuações
+                        </h3>
+                        <div id="historico-lista" class="space-y-3 max-h-96 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 shadow-xl border border-gray-700">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-traffic-light text-yellow-400 mr-2"></i>
+                            Sistema de Níveis
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-red-500/10 border border-red-500 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-circle text-red-500 mr-2 nivel-vermelho"></i>
+                                    <span class="font-bold">Vermelho</span>
+                                </div>
+                                <p class="text-sm text-gray-400">0 - <span id="limite-vermelho">199</span> pontos</p>
+                                <p class="text-xs text-gray-500 mt-1">Cliente iniciante</p>
+                            </div>
+                            <div class="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-circle text-yellow-500 mr-2 nivel-amarelo"></i>
+                                    <span class="font-bold">Amarelo</span>
+                                </div>
+                                <p class="text-sm text-gray-400"><span id="limite-amarelo-min">200</span> - <span id="limite-amarelo-max">499</span> pontos</p>
+                                <p class="text-xs text-gray-500 mt-1">Cliente regular</p>
+                            </div>
+                            <div class="bg-green-500/10 border border-green-500 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-circle text-green-500 mr-2 nivel-verde"></i>
+                                    <span class="font-bold">Verde</span>
+                                </div>
+                                <p class="text-sm text-gray-400"><span id="limite-verde">500</span>+ pontos</p>
+                                <p class="text-xs text-gray-500 mt-1">Cliente VIP</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500 rounded-xl p-6 shadow-xl">
+                        <h3 class="text-lg font-bold mb-3 flex items-center">
+                            <i class="fas fa-gift text-purple-400 mr-2"></i>
+                            Dica
+                        </h3>
+                        <p class="text-sm text-gray-300">
+                            Continue frequentando o bar e acumulando pontos para alcançar o nível VIP e ganhar benefícios exclusivos!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-checkin" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Fazer Check-in</h3>
+                <button onclick="fecharModalCheckin()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="text-center mb-6">
+                <i class="fas fa-map-marker-alt text-6xl text-green-500 mb-4"></i>
+                <p class="text-gray-300">Confirme sua presença no bar para validar sua frequência e ganhar bônus!</p>
+            </div>
+            <form id="form-checkin" onsubmit="realizarCheckin(event)">
+                <div class="space-y-4">
+                    <div class="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Você pode fazer 1 check-in por dia
+                        </p>
+                        <p class="text-sm text-gray-300">
+                            <i class="fas fa-gift mr-2"></i>
+                            Acumule check-ins para ganhar bônus de frequência!
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Localização (opcional)</label>
+                        <input type="text" id="checkin-localizacao" placeholder="Ex: Mesa 5, Área externa..."
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+                <button type="submit" 
+                    class="w-full mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-3 rounded-lg font-semibold transition">
+                    <i class="fas fa-check mr-2"></i>Confirmar Check-in
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let clienteLogado = null;
+
+        async function carregarConfiguracoes() {
+            try {
+                const response = await fetch('/api/configuracoes');
+                const config = await response.json();
+                
+                if (config.nome_bar) {
+                    document.getElementById('navbar-nome').textContent = config.nome_bar;
+                    document.getElementById('page-title').textContent = `Área do Cliente - ${config.nome_bar}`;
+                }
+                
+                if (config.logo_path) {
+                    const logo = document.getElementById('navbar-logo');
+                    logo.src = config.logo_path;
+                    logo.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+
+        function mostrarAba(aba) {
+            if (aba === 'login') {
+                document.getElementById('aba-login').classList.remove('hidden');
+                document.getElementById('aba-definir-senha').classList.add('hidden');
+                document.getElementById('btn-login').classList.add('bg-blue-500');
+                document.getElementById('btn-login').classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                document.getElementById('btn-definir').classList.remove('bg-blue-500');
+                document.getElementById('btn-definir').classList.add('bg-gray-700', 'hover:bg-gray-600');
+            } else {
+                document.getElementById('aba-login').classList.add('hidden');
+                document.getElementById('aba-definir-senha').classList.remove('hidden');
+                document.getElementById('btn-definir').classList.add('bg-blue-500');
+                document.getElementById('btn-definir').classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                document.getElementById('btn-login').classList.remove('bg-blue-500');
+                document.getElementById('btn-login').classList.add('bg-gray-700', 'hover:bg-gray-600');
+            }
+        }
+
+        async function fazerLogin(event) {
+            event.preventDefault();
+            
+            const telefone = document.getElementById('login-telefone').value;
+            const senha = document.getElementById('login-senha').value;
+            
+            try {
+                const response = await fetch('/api/cliente/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telefone, senha: senha || null })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    clienteLogado = data.cliente;
+                    mostrarPerfil();
+                    await carregarPerfil();
+                } else {
+                    alert(data.error || 'Erro ao fazer login');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer login:', error);
+                alert('Erro ao fazer login');
+            }
+        }
+
+        async function definirSenha(event) {
+            event.preventDefault();
+            
+            const telefone = document.getElementById('def-telefone').value;
+            const senha = document.getElementById('def-senha').value;
+            const confirmar = document.getElementById('def-confirmar').value;
+            
+            if (senha !== confirmar) {
+                alert('As senhas não coincidem!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cliente/definir-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telefone, senha })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Senha definida com sucesso! Agora você pode fazer login.');
+                    mostrarAba('login');
+                    document.getElementById('form-definir-senha').reset();
+                } else {
+                    alert(data.error || 'Erro ao definir senha');
+                }
+            } catch (error) {
+                console.error('Erro ao definir senha:', error);
+                alert('Erro ao definir senha');
+            }
+        }
+
+        function mostrarPerfil() {
+            document.getElementById('tela-login').classList.add('hidden');
+            document.getElementById('tela-perfil').classList.remove('hidden');
+            document.getElementById('nav-logado').classList.remove('hidden');
+            document.getElementById('nome-usuario').textContent = clienteLogado.nome;
+            carregarProdutos();
+            carregarMinhasSolicitacoes();
+            verificarPodeCheckin();
+            carregarHistoricoCheckins();
+        }
+
+        async function verificarPodeCheckin() {
+            try {
+                const response = await fetch('/api/cliente/pode-checkin');
+                const data = await response.json();
+                
+                const btnCheckin = document.getElementById('btn-checkin');
+                if (data.ja_fez_checkin) {
+                    btnCheckin.disabled = true;
+                    btnCheckin.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnCheckin.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Check-in Feito Hoje';
+                } else {
+                    btnCheckin.disabled = false;
+                    btnCheckin.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnCheckin.innerHTML = '<i class="fas fa-map-marker-check mr-2"></i>Fazer Check-in';
+                }
+            } catch (error) {
+                console.error('Erro ao verificar check-in:', error);
+            }
+        }
+
+        function abrirModalCheckin() {
+            const btnCheckin = document.getElementById('btn-checkin');
+            if (btnCheckin.disabled) {
+                alert('Você já fez check-in hoje! Volte amanhã.');
+                return;
+            }
+            document.getElementById('modal-checkin').classList.remove('hidden');
+            document.getElementById('modal-checkin').classList.add('flex');
+        }
+
+        function fecharModalCheckin() {
+            document.getElementById('modal-checkin').classList.add('hidden');
+            document.getElementById('modal-checkin').classList.remove('flex');
+            document.getElementById('form-checkin').reset();
+        }
+
+        async function realizarCheckin(event) {
+            event.preventDefault();
+            
+            const localizacao = document.getElementById('checkin-localizacao').value;
+            
+            try {
+                const response = await fetch('/api/cliente/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ localizacao })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message);
+                    fecharModalCheckin();
+                    verificarPodeCheckin();
+                    carregarHistoricoCheckins();
+                    carregarPerfil();
+                } else {
+                    alert(data.error || 'Erro ao fazer check-in');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer check-in:', error);
+                alert('Erro ao fazer check-in');
+            }
+        }
+
+        async function carregarHistoricoCheckins() {
+            try {
+                const response = await fetch('/api/cliente/checkins');
+                const checkins = await response.json();
+                
+                const lista = document.getElementById('historico-checkins');
+                lista.innerHTML = '';
+                
+                if (checkins.length === 0) {
+                    lista.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhum check-in realizado ainda</p>';
+                    return;
+                }
+                
+                checkins.forEach(checkin => {
+                    const data = new Date(checkin.data_checkin);
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-700/50 rounded-lg p-3 border border-gray-600 flex justify-between items-center';
+                    div.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-green-400 mr-3 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-sm">${data.toLocaleDateString('pt-BR')}</p>
+                                <p class="text-xs text-gray-400">${data.toLocaleTimeString('pt-BR')}</p>
+                                ${checkin.localizacao ? `<p class="text-xs text-gray-500">${checkin.localizacao}</p>` : ''}
+                            </div>
+                        </div>
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    `;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar check-ins:', error);
+            }
+        }
+
+        async function carregarPerfil() {
+            try {
+                const response = await fetch('/api/cliente/perfil');
+                const perfil = await response.json();
+                
+                document.getElementById('perfil-nome').textContent = perfil.nome;
+                document.getElementById('perfil-telefone').textContent = perfil.telefone || '-';
+                document.getElementById('perfil-email').textContent = perfil.email || '-';
+                document.getElementById('perfil-pontos').textContent = perfil.pontos_totais;
+                document.getElementById('perfil-expirados').textContent = perfil.pontos_expirados || 0;
+                document.getElementById('perfil-bonus').textContent = perfil.pontos_bonus_disponiveis || 0;
+                document.getElementById('perfil-dias-mes').textContent = `${perfil.dias_visitados_mes || 0} visitas/mês`;
+                
+                if (perfil.ultima_visita) {
+                    const data = new Date(perfil.ultima_visita);
+                    document.getElementById('perfil-visita').textContent = data.toLocaleDateString('pt-BR');
+                }
+                
+                const nivelClass = perfil.nivel === 'verde' ? 'badge-verde' : 
+                                  perfil.nivel === 'amarelo' ? 'badge-amarelo' : 'badge-vermelho';
+                const nivelTexto = perfil.nivel.charAt(0).toUpperCase() + perfil.nivel.slice(1);
+                
+                document.getElementById('perfil-badge').innerHTML = `
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold ${nivelClass}">
+                        <i class="fas fa-circle text-2xl"></i>
+                        <span class="text-lg">${nivelTexto}</span>
+                    </div>
+                `;
+                
+                const pontosAmarelo = perfil.config.pontos_amarelo;
+                const pontosVerde = perfil.config.pontos_verde;
+                
+                document.getElementById('limite-vermelho').textContent = pontosAmarelo - 1;
+                document.getElementById('limite-amarelo-min').textContent = pontosAmarelo;
+                document.getElementById('limite-amarelo-max').textContent = pontosVerde - 1;
+                document.getElementById('limite-verde').textContent = pontosVerde;
+                
+                let progresso = 0;
+                let textoProgresso = '';
+                
+                if (perfil.pontos_totais < pontosAmarelo) {
+                    progresso = (perfil.pontos_totais / pontosAmarelo) * 100;
+                    textoProgresso = `${perfil.pontos_totais} / ${pontosAmarelo} para Amarelo`;
+                } else if (perfil.pontos_totais < pontosVerde) {
+                    progresso = ((perfil.pontos_totais - pontosAmarelo) / (pontosVerde - pontosAmarelo)) * 100;
+                    textoProgresso = `${perfil.pontos_totais} / ${pontosVerde} para Verde`;
+                } else {
+                    progresso = 100;
+                    textoProgresso = 'Nível máximo alcançado!';
+                }
+                
+                document.getElementById('barra-progresso').style.width = progresso + '%';
+                document.getElementById('progresso-texto').textContent = textoProgresso;
+                
+                const historicoLista = document.getElementById('historico-lista');
+                historicoLista.innerHTML = '';
+                
+                if (perfil.historico && perfil.historico.length > 0) {
+                    perfil.historico.forEach(item => {
+                        const data = new Date(item.data);
+                        const div = document.createElement('div');
+                        div.className = 'bg-gray-700/50 rounded-lg p-4 border border-gray-600';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-blue-400">+${item.pontos} pontos</p>
+                                    <p class="text-sm text-gray-400">${item.tipo}</p>
+                                    ${item.descricao ? `<p class="text-xs text-gray-500 mt-1">${item.descricao}</p>` : ''}
+                                </div>
+                                <p class="text-xs text-gray-500">${data.toLocaleDateString('pt-BR')}</p>
+                            </div>
+                        `;
+                        historicoLista.appendChild(div);
+                    });
+                } else {
+                    historicoLista.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma pontuação registrada ainda</p>';
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar perfil:', error);
+                alert('Erro ao carregar perfil');
+            }
+        }
+
+        async function fazerLogout() {
+            try {
+                await fetch('/api/cliente/logout', { method: 'POST' });
+                clienteLogado = null;
+                document.getElementById('tela-perfil').classList.add('hidden');
+                document.getElementById('tela-login').classList.remove('hidden');
+                document.getElementById('nav-logado').classList.add('hidden');
+                document.getElementById('form-login').reset();
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        }
+
+        let produtosDisponiveis = [];
+
+        async function carregarProdutos() {
+            try {
+                const response = await fetch('/api/produtos?ativos=true');
+                produtosDisponiveis = await response.json();
+                
+                const select = document.getElementById('produto-select');
+                select.innerHTML = '<option value="">Selecione um produto</option>';
+                
+                produtosDisponiveis.forEach(produto => {
+                    const option = document.createElement('option');
+                    option.value = produto.id;
+                    option.textContent = `${produto.nome} - ${produto.pontos} pts`;
+                    option.dataset.pontos = produto.pontos;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+            }
+        }
+
+        function atualizarPontosProduto() {
+            const select = document.getElementById('produto-select');
+            const quantidade = parseInt(document.getElementById('quantidade-input').value) || 1;
+            
+            if (select.value) {
+                const pontos = parseInt(select.options[select.selectedIndex].dataset.pontos);
+                const total = pontos * quantidade;
+                document.getElementById('pontos-preview').textContent = `${total} pts`;
+            } else {
+                document.getElementById('pontos-preview').textContent = '0 pts';
+            }
+        }
+
+        async function solicitarPontos(event) {
+            event.preventDefault();
+            
+            const produtoId = document.getElementById('produto-select').value;
+            const quantidade = parseInt(document.getElementById('quantidade-input').value);
+            const observacao = document.getElementById('observacao-input').value;
+            
+            try {
+                const response = await fetch('/api/solicitacoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ produto_id: produtoId, quantidade, observacao })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message);
+                    document.getElementById('form-solicitar-pontos').reset();
+                    document.getElementById('pontos-preview').textContent = '0 pts';
+                    carregarMinhasSolicitacoes();
+                } else {
+                    alert(data.error || 'Erro ao enviar solicitação');
+                }
+            } catch (error) {
+                console.error('Erro ao solicitar pontos:', error);
+                alert('Erro ao solicitar pontos');
+            }
+        }
+
+        async function carregarMinhasSolicitacoes() {
+            try {
+                const response = await fetch('/api/solicitacoes/cliente');
+                const solicitacoes = await response.json();
+                
+                const lista = document.getElementById('minhas-solicitacoes');
+                lista.innerHTML = '';
+                
+                if (solicitacoes.length === 0) {
+                    lista.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma solicitação enviada ainda</p>';
+                    return;
+                }
+                
+                solicitacoes.forEach(sol => {
+                    const data = new Date(sol.data_solicitacao);
+                    const statusClass = sol.status === 'aprovada' ? 'bg-green-500/20 text-green-400 border-green-500' :
+                                       sol.status === 'rejeitada' ? 'bg-red-500/20 text-red-400 border-red-500' :
+                                       'bg-yellow-500/20 text-yellow-400 border-yellow-500';
+                    const statusIcon = sol.status === 'aprovada' ? 'fa-check-circle' :
+                                      sol.status === 'rejeitada' ? 'fa-times-circle' :
+                                      'fa-clock';
+                    
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-700/50 rounded-lg p-4 border border-gray-600';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <p class="font-bold text-orange-400">${sol.produto_nome}</p>
+                                <p class="text-sm text-gray-400">Quantidade: ${sol.quantidade}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold border ${statusClass}">
+                                <i class="fas ${statusIcon} mr-1"></i>${sol.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-lg font-bold text-green-400">+${sol.pontos_total} pts</p>
+                            <p class="text-xs text-gray-500">${data.toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        ${sol.observacao ? `<p class="text-xs text-gray-500 mt-2">Obs: ${sol.observacao}</p>` : ''}
+                    `;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar solicitações:', error);
+            }
+        }
+
+        carregarConfiguracoes();
+    </script>
+    
+    <style>
+        .badge-verde {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+        }
+        
+        .badge-amarelo {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(251, 191, 36, 0.4);
+        }
+        
+        .badge-vermelho {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.4);
+        }
+    </style>
+</body>
+</html>
