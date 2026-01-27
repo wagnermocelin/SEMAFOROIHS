@@ -2,16 +2,21 @@ from flask import Flask, render_template, request, jsonify, session, send_from_d
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import secrets
 import os
 import base64
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(16))
 CORS(app, supports_credentials=True)
 
-DATABASE = 'semaforo.db'
+# Configuração do banco de dados
+DATABASE_URL = os.getenv('POSTGRES_URL', os.getenv('DATABASE_URL', ''))
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
 
@@ -21,105 +26,98 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
+    """Conecta ao PostgreSQL usando a URL do Vercel Postgres"""
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     return conn
+
+def dict_cursor(conn):
+    """Retorna um cursor que retorna dicionários em vez de tuplas"""
+    return conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
 def init_db():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clientes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            telefone TEXT,
-            email TEXT,
-            senha TEXT,
-            data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            id SERIAL PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            telefone VARCHAR(20),
+            email VARCHAR(255),
+            senha VARCHAR(255),
+            data_cadastro TIMESTAMP DEFAULT NOW(),
             pontos_totais INTEGER DEFAULT 0,
-            nivel TEXT DEFAULT 'vermelho',
+            nivel VARCHAR(20) DEFAULT 'vermelho',
             ultima_visita TIMESTAMP
         )
     ''')
     
-    try:
-        cursor.execute('ALTER TABLE clientes ADD COLUMN senha TEXT')
-        conn.commit()
-    except:
-        pass
-    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pontuacoes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cliente_id INTEGER NOT NULL,
             pontos INTEGER NOT NULL,
-            tipo TEXT NOT NULL,
+            tipo VARCHAR(50) NOT NULL,
             descricao TEXT,
-            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data TIMESTAMP DEFAULT NOW(),
             data_validade TIMESTAMP,
-            FOREIGN KEY (cliente_id) REFERENCES clientes (id)
+            FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
         )
     ''')
     
-    try:
-        cursor.execute('ALTER TABLE pontuacoes ADD COLUMN data_validade TIMESTAMP')
-        conn.commit()
-    except:
-        pass
-    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS configuracoes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome_bar TEXT DEFAULT 'Semáforo Bar',
+            id SERIAL PRIMARY KEY,
+            nome_bar VARCHAR(255) DEFAULT 'Semáforo Bar',
             logo_path TEXT,
             pontos_vermelho_min INTEGER DEFAULT 0,
             pontos_amarelo_min INTEGER DEFAULT 200,
             pontos_verde_min INTEGER DEFAULT 500,
-            senha_admin TEXT DEFAULT 'admin123'
+            senha_admin VARCHAR(255) DEFAULT 'admin123'
         )
     ''')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS produtos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
             descricao TEXT,
             pontos INTEGER NOT NULL,
             ativo INTEGER DEFAULT 1,
-            data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            data_cadastro TIMESTAMP DEFAULT NOW()
         )
     ''')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS solicitacoes_pontos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cliente_id INTEGER NOT NULL,
             produto_id INTEGER NOT NULL,
             quantidade INTEGER DEFAULT 1,
             pontos_total INTEGER NOT NULL,
             status TEXT DEFAULT 'pendente',
             observacao TEXT,
-            data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data_solicitacao TIMESTAMP DEFAULT NOW(),
             data_validacao TIMESTAMP,
-            validado_por TEXT,
-            FOREIGN KEY (cliente_id) REFERENCES clientes (id),
-            FOREIGN KEY (produto_id) REFERENCES produtos (id)
+            validado_por VARCHAR(255),
+            FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
+            FOREIGN KEY (produto_id) REFERENCES produtos (id) ON DELETE CASCADE
         )
     ''')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS checkins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cliente_id INTEGER NOT NULL,
-            data_checkin TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data_checkin TIMESTAMP DEFAULT NOW(),
             localizacao TEXT,
-            FOREIGN KEY (cliente_id) REFERENCES clientes (id)
+            FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
         )
     ''')
     
     cursor.execute('SELECT COUNT(*) FROM configuracoes')
-    if cursor.fetchone()[0] == 0:
+    count = cursor.fetchone()[0]
+    if count == 0:
         cursor.execute('''
             INSERT INTO configuracoes (nome_bar, senha_admin) 
             VALUES ('Semáforo Bar', 'admin123')
@@ -133,7 +131,7 @@ def allowed_file(filename):
 
 def get_configuracoes():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('SELECT * FROM configuracoes LIMIT 1')
     config = cursor.fetchone()
     conn.close()
@@ -141,13 +139,13 @@ def get_configuracoes():
 
 def calcular_pontos_validos(cliente_id):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
         SELECT SUM(pontos) as total
         FROM pontuacoes
-        WHERE cliente_id = ?
-        AND (data_validade IS NULL OR data_validade > datetime('now'))
+        WHERE cliente_id = %s
+        AND (data_validade IS NULL OR data_validade > NOW())
     ''', (cliente_id,))
     
     resultado = cursor.fetchone()
@@ -171,13 +169,13 @@ def calcular_nivel(pontos):
 
 def calcular_pontos_frequencia(cliente_id):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
         SELECT COUNT(DISTINCT DATE(data_checkin)) as dias_visitados
         FROM checkins
-        WHERE cliente_id = ?
-        AND data_checkin >= datetime('now', '-30 days')
+        WHERE cliente_id = %s
+        AND data_checkin >= NOW() - INTERVAL '30 days'
     ''', (cliente_id,))
     
     resultado = cursor.fetchone()
@@ -203,7 +201,7 @@ def index():
 @app.route('/api/clientes', methods=['GET'])
 def listar_clientes():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         SELECT id, nome, telefone, email, pontos_totais, nivel, 
                data_cadastro, ultima_visita
@@ -225,10 +223,10 @@ def cadastrar_cliente():
         return jsonify({'error': 'Nome é obrigatório'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         INSERT INTO clientes (nome, telefone, email)
-        VALUES (?, ?, ?)
+        VALUES (%s, %s, %s)
     ''', (nome, telefone, email))
     conn.commit()
     cliente_id = cursor.lastrowid
@@ -239,8 +237,8 @@ def cadastrar_cliente():
 @app.route('/api/clientes/<int:cliente_id>', methods=['GET'])
 def obter_cliente(cliente_id):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clientes WHERE id = ?', (cliente_id,))
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
+    cursor.execute('SELECT * FROM clientes WHERE id = %s', (cliente_id,))
     cliente = cursor.fetchone()
     
     if not cliente:
@@ -249,7 +247,7 @@ def obter_cliente(cliente_id):
     
     cursor.execute('''
         SELECT * FROM pontuacoes 
-        WHERE cliente_id = ? 
+        WHERE cliente_id = %s 
         ORDER BY data DESC 
         LIMIT 20
     ''', (cliente_id,))
@@ -272,11 +270,11 @@ def atualizar_cliente(cliente_id):
         return jsonify({'error': 'Nome é obrigatório'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         UPDATE clientes 
-        SET nome = ?, telefone = ?, email = ?
-        WHERE id = ?
+        SET nome = %s, telefone = ?, email = ?
+        WHERE id = %s
     ''', (nome, telefone, email, cliente_id))
     conn.commit()
     conn.close()
@@ -286,9 +284,9 @@ def atualizar_cliente(cliente_id):
 @app.route('/api/clientes/<int:cliente_id>', methods=['DELETE'])
 def deletar_cliente(cliente_id):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM pontuacoes WHERE cliente_id = ?', (cliente_id,))
-    cursor.execute('DELETE FROM clientes WHERE id = ?', (cliente_id,))
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
+    cursor.execute('DELETE FROM pontuacoes WHERE cliente_id = %s', (cliente_id,))
+    cursor.execute('DELETE FROM clientes WHERE id = %s', (cliente_id,))
     conn.commit()
     conn.close()
     
@@ -306,11 +304,11 @@ def adicionar_pontos():
         return jsonify({'error': 'Dados inválidos'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
         INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-        VALUES (?, ?, ?, ?, datetime('now', '+90 days'))
+        VALUES (%s, %s, %s, %s, NOW() + INTERVAL '90 days')
     ''', (cliente_id, pontos, tipo, descricao))
     
     pontos_validos = calcular_pontos_validos(cliente_id)
@@ -319,16 +317,16 @@ def adicionar_pontos():
     if pontos_bonus > 0:
         cursor.execute('''
             INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-            VALUES (?, ?, 'frequencia', ?, datetime('now', '+90 days'))
+            VALUES (%s, %s, 'frequencia', %s, NOW() + INTERVAL '90 days')
         ''', (cliente_id, pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
         pontos_validos = calcular_pontos_validos(cliente_id)
     
     cursor.execute('''
         UPDATE clientes 
-        SET pontos_totais = ?,
-            nivel = ?,
-            ultima_visita = CURRENT_TIMESTAMP
-        WHERE id = ?
+        SET pontos_totais = %s,
+            nivel = %s,
+            ultima_visita = NOW()
+        WHERE id = %s
     ''', (pontos_validos, calcular_nivel(pontos_validos), cliente_id))
     
     conn.commit()
@@ -348,7 +346,7 @@ def adicionar_pontos():
 @app.route('/api/ranking', methods=['GET'])
 def ranking():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         SELECT id, nome, pontos_totais, nivel
         FROM clientes
@@ -362,7 +360,7 @@ def ranking():
 @app.route('/api/estatisticas', methods=['GET'])
 def estatisticas():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('SELECT COUNT(*) as total FROM clientes')
     total_clientes = cursor.fetchone()[0]
@@ -426,12 +424,12 @@ def atualizar_configuracoes():
     senha_admin = data.get('senha_admin')
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     if senha_admin:
         cursor.execute('''
             UPDATE configuracoes 
-            SET nome_bar = ?, pontos_vermelho_min = ?, 
+            SET nome_bar = %s, pontos_vermelho_min = ?, 
                 pontos_amarelo_min = ?, pontos_verde_min = ?,
                 senha_admin = ?
             WHERE id = 1
@@ -439,7 +437,7 @@ def atualizar_configuracoes():
     else:
         cursor.execute('''
             UPDATE configuracoes 
-            SET nome_bar = ?, pontos_vermelho_min = ?, 
+            SET nome_bar = %s, pontos_vermelho_min = ?, 
                 pontos_amarelo_min = ?, pontos_verde_min = ?
             WHERE id = 1
         ''', (nome_bar, pontos_vermelho_min, pontos_amarelo_min, pontos_verde_min))
@@ -472,8 +470,8 @@ def upload_logo():
         logo_path = f'/static/uploads/{filename}'
         
         conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('UPDATE configuracoes SET logo_path = ? WHERE id = 1', (logo_path,))
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('UPDATE configuracoes SET logo_path = %s WHERE id = 1', (logo_path,))
         conn.commit()
         conn.close()
         
@@ -499,12 +497,12 @@ def cliente_login():
         return jsonify({'error': 'Telefone é obrigatório'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     if senha:
-        cursor.execute('SELECT * FROM clientes WHERE telefone = ? AND senha = ?', (telefone, senha))
+        cursor.execute('SELECT * FROM clientes WHERE telefone = %s AND senha = %s', (telefone, senha))
     else:
-        cursor.execute('SELECT * FROM clientes WHERE telefone = ?', (telefone,))
+        cursor.execute('SELECT * FROM clientes WHERE telefone = %s', (telefone,))
     
     cliente = cursor.fetchone()
     conn.close()
@@ -540,8 +538,8 @@ def cliente_perfil():
     cliente_id = session['cliente_id']
     
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clientes WHERE id = ?', (cliente_id,))
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
+    cursor.execute('SELECT * FROM clientes WHERE id = %s', (cliente_id,))
     cliente = cursor.fetchone()
     
     if not cliente:
@@ -550,7 +548,7 @@ def cliente_perfil():
     
     cursor.execute('''
         SELECT * FROM pontuacoes 
-        WHERE cliente_id = ? 
+        WHERE cliente_id = %s 
         ORDER BY data DESC
     ''', (cliente_id,))
     historico = [dict(row) for row in cursor.fetchall()]
@@ -558,9 +556,9 @@ def cliente_perfil():
     cursor.execute('''
         SELECT SUM(pontos) as total
         FROM pontuacoes
-        WHERE cliente_id = ?
+        WHERE cliente_id = %s
         AND data_validade IS NOT NULL
-        AND data_validade <= datetime('now')
+        AND data_validade <= NOW()
     ''', (cliente_id,))
     resultado_expirados = cursor.fetchone()
     pontos_expirados = resultado_expirados[0] if resultado_expirados[0] else 0
@@ -604,8 +602,8 @@ def cliente_definir_senha():
         return jsonify({'error': 'Senha deve ter no mínimo 4 caracteres'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('UPDATE clientes SET senha = ? WHERE telefone = ?', (senha, telefone))
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
+    cursor.execute('UPDATE clientes SET senha = %s WHERE telefone = %s', (senha, telefone))
     
     if cursor.rowcount == 0:
         conn.close()
@@ -626,11 +624,11 @@ def fazer_checkin():
     localizacao = data.get('localizacao', '')
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
         SELECT COUNT(*) FROM checkins
-        WHERE cliente_id = ?
+        WHERE cliente_id = %s
         AND DATE(data_checkin) = DATE('now')
     ''', (cliente_id,))
     
@@ -642,13 +640,13 @@ def fazer_checkin():
     
     cursor.execute('''
         INSERT INTO checkins (cliente_id, localizacao)
-        VALUES (?, ?)
+        VALUES (%s, %s)
     ''', (cliente_id, localizacao))
     
     cursor.execute('''
         UPDATE clientes 
-        SET ultima_visita = CURRENT_TIMESTAMP
-        WHERE id = ?
+        SET ultima_visita = NOW()
+        WHERE id = %s
     ''', (cliente_id,))
     
     conn.commit()
@@ -676,10 +674,10 @@ def listar_checkins_cliente():
     cliente_id = session['cliente_id']
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         SELECT * FROM checkins
-        WHERE cliente_id = ?
+        WHERE cliente_id = %s
         ORDER BY data_checkin DESC
         LIMIT 30
     ''', (cliente_id,))
@@ -697,10 +695,10 @@ def pode_fazer_checkin():
     cliente_id = session['cliente_id']
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         SELECT COUNT(*) FROM checkins
-        WHERE cliente_id = ?
+        WHERE cliente_id = %s
         AND DATE(data_checkin) = DATE('now')
     ''', (cliente_id,))
     
@@ -715,7 +713,7 @@ def pode_fazer_checkin():
 @app.route('/api/produtos', methods=['GET'])
 def listar_produtos():
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     apenas_ativos = request.args.get('ativos', 'false').lower() == 'true'
     
@@ -742,10 +740,10 @@ def cadastrar_produto():
         return jsonify({'error': 'Nome e pontos são obrigatórios'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         INSERT INTO produtos (nome, descricao, pontos)
-        VALUES (?, ?, ?)
+        VALUES (%s, %s, %s)
     ''', (nome, descricao, pontos))
     conn.commit()
     produto_id = cursor.lastrowid
@@ -768,11 +766,11 @@ def atualizar_produto(produto_id):
         return jsonify({'error': 'Nome e pontos são obrigatórios'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         UPDATE produtos 
-        SET nome = ?, descricao = ?, pontos = ?, ativo = ?
-        WHERE id = ?
+        SET nome = %s, descricao = ?, pontos = ?, ativo = ?
+        WHERE id = %s
     ''', (nome, descricao, pontos, ativo, produto_id))
     conn.commit()
     conn.close()
@@ -785,8 +783,8 @@ def deletar_produto(produto_id):
         return jsonify({'error': 'Não autorizado'}), 401
     
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM produtos WHERE id = ?', (produto_id,))
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
+    cursor.execute('DELETE FROM produtos WHERE id = %s', (produto_id,))
     conn.commit()
     conn.close()
     
@@ -806,9 +804,9 @@ def solicitar_pontos():
         return jsonify({'error': 'Dados inválidos'}), 400
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
-    cursor.execute('SELECT * FROM produtos WHERE id = ? AND ativo = 1', (produto_id,))
+    cursor.execute('SELECT * FROM produtos WHERE id = %s AND ativo = 1', (produto_id,))
     produto = cursor.fetchone()
     
     if not produto:
@@ -820,7 +818,7 @@ def solicitar_pontos():
     
     cursor.execute('''
         INSERT INTO solicitacoes_pontos (cliente_id, produto_id, quantidade, pontos_total, observacao)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
     ''', (cliente_id, produto_id, quantidade, pontos_total, observacao))
     conn.commit()
     solicitacao_id = cursor.lastrowid
@@ -840,7 +838,7 @@ def listar_solicitacoes():
     status = request.args.get('status', 'pendente')
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     if status == 'todas':
         cursor.execute('''
@@ -858,7 +856,7 @@ def listar_solicitacoes():
             FROM solicitacoes_pontos s
             JOIN clientes c ON s.cliente_id = c.id
             JOIN produtos p ON s.produto_id = p.id
-            WHERE s.status = ?
+            WHERE s.status = %s
             ORDER BY s.data_solicitacao DESC
         ''', (status,))
     
@@ -874,12 +872,12 @@ def listar_solicitacoes_cliente():
     cliente_id = session['cliente_id']
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     cursor.execute('''
         SELECT s.*, p.nome as produto_nome, p.descricao as produto_descricao
         FROM solicitacoes_pontos s
         JOIN produtos p ON s.produto_id = p.id
-        WHERE s.cliente_id = ?
+        WHERE s.cliente_id = %s
         ORDER BY s.data_solicitacao DESC
     ''', (cliente_id,))
     
@@ -896,9 +894,9 @@ def validar_solicitacao(solicitacao_id):
     aprovar = data.get('aprovar', False)
     
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = dict_cursor(conn)  # PostgreSQL com dict
     
-    cursor.execute('SELECT * FROM solicitacoes_pontos WHERE id = ?', (solicitacao_id,))
+    cursor.execute('SELECT * FROM solicitacoes_pontos WHERE id = %s', (solicitacao_id,))
     solicitacao = cursor.fetchone()
     
     if not solicitacao:
@@ -913,14 +911,14 @@ def validar_solicitacao(solicitacao_id):
     
     cursor.execute('''
         UPDATE solicitacoes_pontos 
-        SET status = ?, data_validacao = CURRENT_TIMESTAMP, validado_por = 'admin'
-        WHERE id = ?
+        SET status = %s, data_validacao = NOW(), validado_por = 'admin'
+        WHERE id = %s
     ''', (novo_status, solicitacao_id))
     
     if aprovar:
         cursor.execute('''
             INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-            VALUES (?, ?, 'produto', ?, datetime('now', '+90 days'))
+            VALUES (%s, %s, 'produto', %s, NOW() + INTERVAL '90 days')
         ''', (solicitacao['cliente_id'], solicitacao['pontos_total'], 
               f"Produto consumido (Solicitação #{solicitacao_id})"))
         
@@ -930,16 +928,16 @@ def validar_solicitacao(solicitacao_id):
         if pontos_bonus > 0:
             cursor.execute('''
                 INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-                VALUES (?, ?, 'frequencia', ?, datetime('now', '+90 days'))
+                VALUES (%s, %s, 'frequencia', %s, NOW() + INTERVAL '90 days')
             ''', (solicitacao['cliente_id'], pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
             pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
         
         cursor.execute('''
             UPDATE clientes 
-            SET pontos_totais = ?,
+            SET pontos_totais = %s,
                 nivel = ?,
-                ultima_visita = CURRENT_TIMESTAMP
-            WHERE id = ?
+                ultima_visita = NOW()
+            WHERE id = %s
         ''', (pontos_validos, calcular_nivel(pontos_validos), solicitacao['cliente_id']))
     
     conn.commit()

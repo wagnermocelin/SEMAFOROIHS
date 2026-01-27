@@ -30,23 +30,48 @@ vercel
 vercel --prod
 ```
 
-## ⚠️ Importante - Banco de Dados
+## 🗄️ Configuração do Vercel Postgres (OBRIGATÓRIO)
 
-**ATENÇÃO:** SQLite não é recomendado para produção na Vercel devido à natureza serverless.
+**✅ O código já está migrado para PostgreSQL!**
 
-### Soluções para Produção:
+### Passo 1: Criar Banco de Dados Vercel Postgres
 
-1. **Vercel Postgres** (Recomendado)
-   - Criar database em: https://vercel.com/dashboard/stores
-   - Atualizar código para usar PostgreSQL
+1. Acesse https://vercel.com/dashboard/stores
+2. Clique em **"Create Database"**
+3. Selecione **"Postgres"**
+4. Escolha um nome (ex: `semaforo-db`)
+5. Selecione a região mais próxima
+6. Clique em **"Create"**
 
-2. **PlanetScale** (MySQL)
-   - Criar database em: https://planetscale.com
-   - Configurar connection string
+### Passo 2: Conectar ao Projeto
 
-3. **Supabase** (PostgreSQL)
-   - Criar projeto em: https://supabase.com
-   - Usar PostgreSQL connection
+1. No dashboard do banco criado, clique em **"Connect Project"**
+2. Selecione seu projeto: `SEMAFOROIHS`
+3. Clique em **"Connect"**
+4. A variável `POSTGRES_URL` será automaticamente adicionada ao projeto
+
+### Passo 3: Inicializar o Banco de Dados
+
+Após o primeiro deploy, as tabelas serão criadas automaticamente pela função `init_db()`.
+
+**Estrutura criada:**
+- `clientes` - Dados dos clientes
+- `pontuacoes` - Histórico de pontos
+- `configuracoes` - Configurações do bar
+- `produtos` - Produtos disponíveis
+- `solicitacoes_pontos` - Solicitações pendentes
+- `checkins` - Registro de visitas
+
+### Passo 4: Configurar Variáveis de Ambiente
+
+No dashboard da Vercel, vá em **Settings > Environment Variables** e adicione:
+
+```
+SECRET_KEY=<gere com: python -c "import secrets; print(secrets.token_hex(32))">
+FLASK_ENV=production
+```
+
+**Nota:** `POSTGRES_URL` já foi configurada automaticamente no Passo 2.
 
 ## 📁 Arquivos de Configuração
 
