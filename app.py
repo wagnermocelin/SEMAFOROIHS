@@ -242,6 +242,45 @@ def health_check():
             'error_type': type(e).__name__
         }), 500
 
+@app.route('/api/debug/tables', methods=['GET'])
+def debug_tables():
+    """Endpoint para verificar status das tabelas"""
+    try:
+        conn = get_db()
+        cursor = dict_cursor(conn)
+        
+        # Verificar quais tabelas existem
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+            ORDER BY table_name
+        """)
+        tabelas = [row['table_name'] for row in cursor.fetchall()]
+        
+        # Contar registros em cada tabela
+        contagens = {}
+        for tabela in tabelas:
+            try:
+                cursor.execute(f'SELECT COUNT(*) as total FROM {tabela}')
+                contagens[tabela] = cursor.fetchone()['total']
+            except:
+                contagens[tabela] = 'erro'
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'ok',
+            'tabelas_existentes': tabelas,
+            'contagem_registros': contagens
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
 @app.route('/api/clientes', methods=['GET'])
 def listar_clientes():
     conn = get_db()
