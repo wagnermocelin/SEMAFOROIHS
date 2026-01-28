@@ -169,7 +169,7 @@ def calcular_pontos_validos(cliente_id):
     resultado = cursor.fetchone()
     conn.close()
     
-    return resultado[0] if resultado[0] else 0
+    return resultado['total'] if resultado and resultado['total'] else 0
 
 def calcular_nivel(pontos):
     config = get_configuracoes()
