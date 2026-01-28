@@ -381,33 +381,37 @@ def ranking():
 
 @app.route('/api/estatisticas', methods=['GET'])
 def estatisticas():
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    
-    cursor.execute('SELECT COUNT(*) as total FROM clientes')
-    total_clientes = cursor.fetchone()[0]
-    
-    cursor.execute('SELECT COUNT(*) as total FROM clientes WHERE nivel = "verde"')
-    clientes_verde = cursor.fetchone()[0]
-    
-    cursor.execute('SELECT COUNT(*) as total FROM clientes WHERE nivel = "amarelo"')
-    clientes_amarelo = cursor.fetchone()[0]
-    
-    cursor.execute('SELECT COUNT(*) as total FROM clientes WHERE nivel = "vermelho"')
-    clientes_vermelho = cursor.fetchone()[0]
-    
-    cursor.execute('SELECT SUM(pontos) as total FROM pontuacoes')
-    pontos_distribuidos = cursor.fetchone()[0] or 0
-    
-    conn.close()
-    
-    return jsonify({
-        'total_clientes': total_clientes,
-        'clientes_verde': clientes_verde,
-        'clientes_amarelo': clientes_amarelo,
-        'clientes_vermelho': clientes_vermelho,
-        'pontos_distribuidos': pontos_distribuidos
-    })
+    try:
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        
+        cursor.execute('SELECT COUNT(*) as total FROM clientes')
+        total_clientes = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'verde'")
+        clientes_verde = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'amarelo'")
+        clientes_amarelo = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'vermelho'")
+        clientes_vermelho = cursor.fetchone()[0]
+        
+        cursor.execute('SELECT SUM(pontos) as total FROM pontuacoes')
+        pontos_distribuidos = cursor.fetchone()[0] or 0
+        
+        conn.close()
+        
+        return jsonify({
+            'total_clientes': total_clientes,
+            'clientes_verde': clientes_verde,
+            'clientes_amarelo': clientes_amarelo,
+            'clientes_vermelho': clientes_vermelho,
+            'pontos_distribuidos': pontos_distribuidos
+        })
+    except Exception as e:
+        print(f"ERRO em /api/estatisticas: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/configuracoes', methods=['GET'])
 def obter_configuracoes():
