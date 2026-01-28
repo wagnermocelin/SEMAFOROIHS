@@ -690,62 +690,66 @@ def cliente_logout():
 
 @app.route('/api/cliente/perfil', methods=['GET'])
 def cliente_perfil():
-    if 'cliente_id' not in session:
-        return jsonify({'error': 'Não autenticado'}), 401
-    
-    cliente_id = session['cliente_id']
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    cursor.execute('SELECT * FROM clientes WHERE id = %s', (cliente_id,))
-    cliente = cursor.fetchone()
-    
-    if not cliente:
+    try:
+        if 'cliente_id' not in session:
+            return jsonify({'error': 'Não autenticado'}), 401
+        
+        cliente_id = session['cliente_id']
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('SELECT * FROM clientes WHERE id = %s', (cliente_id,))
+        cliente = cursor.fetchone()
+        
+        if not cliente:
+            conn.close()
+            return jsonify({'error': 'Cliente não encontrado'}), 404
+        
+        cursor.execute('''
+            SELECT * FROM pontuacoes 
+            WHERE cliente_id = %s 
+            ORDER BY data DESC
+        ''', (cliente_id,))
+        historico = [dict(row) for row in cursor.fetchall()]
+        
+        cursor.execute('''
+            SELECT SUM(pontos) as total
+            FROM pontuacoes
+            WHERE cliente_id = %s
+            AND data_validade IS NOT NULL
+            AND data_validade <= NOW()
+        ''', (cliente_id,))
+        resultado_expirados = cursor.fetchone()
+        pontos_expirados = resultado_expirados['total'] if resultado_expirados and resultado_expirados['total'] else 0
+        
+        pontos_bonus, dias_visitados = calcular_pontos_frequencia(cliente_id)
+        
         conn.close()
-        return jsonify({'error': 'Cliente não encontrado'}), 404
-    
-    cursor.execute('''
-        SELECT * FROM pontuacoes 
-        WHERE cliente_id = %s 
-        ORDER BY data DESC
-    ''', (cliente_id,))
-    historico = [dict(row) for row in cursor.fetchall()]
-    
-    cursor.execute('''
-        SELECT SUM(pontos) as total
-        FROM pontuacoes
-        WHERE cliente_id = %s
-        AND data_validade IS NOT NULL
-        AND data_validade <= NOW()
-    ''', (cliente_id,))
-    resultado_expirados = cursor.fetchone()
-    pontos_expirados = resultado_expirados[0] if resultado_expirados[0] else 0
-    
-    pontos_bonus, dias_visitados = calcular_pontos_frequencia(cliente_id)
-    
-    conn.close()
-    
-    config = get_configuracoes()
-    pontos_validos = calcular_pontos_validos(cliente_id)
-    
-    return jsonify({
-        'id': cliente['id'],
-        'nome': cliente['nome'],
-        'telefone': cliente['telefone'],
-        'email': cliente['email'],
-        'pontos_totais': pontos_validos,
-        'pontos_expirados': pontos_expirados,
-        'pontos_bonus_disponiveis': pontos_bonus,
-        'dias_visitados_mes': dias_visitados,
-        'nivel': calcular_nivel(pontos_validos),
-        'data_cadastro': cliente['data_cadastro'],
-        'ultima_visita': cliente['ultima_visita'],
-        'historico': historico,
-        'config': {
-            'pontos_amarelo': config['pontos_amarelo_min'] if config else 200,
-            'pontos_verde': config['pontos_verde_min'] if config else 500
-        }
-    })
+        
+        config = get_configuracoes()
+        pontos_validos = calcular_pontos_validos(cliente_id)
+        
+        return jsonify({
+            'id': cliente['id'],
+            'nome': cliente['nome'],
+            'telefone': cliente['telefone'],
+            'email': cliente['email'],
+            'pontos_totais': pontos_validos,
+            'pontos_expirados': pontos_expirados,
+            'pontos_bonus_disponiveis': pontos_bonus,
+            'dias_visitados_mes': dias_visitados,
+            'nivel': calcular_nivel(pontos_validos),
+            'data_cadastro': cliente['data_cadastro'],
+            'ultima_visita': cliente['ultima_visita'],
+            'historico': historico,
+            'config': {
+                'pontos_amarelo': config['pontos_amarelo_min'] if config else 200,
+                'pontos_verde': config['pontos_verde_min'] if config else 500
+            }
+        })
+    except Exception as e:
+        print(f"ERRO em /api/cliente/perfil: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cliente/definir-senha', methods=['POST'])
 def cliente_definir_senha():
@@ -847,26 +851,31 @@ def listar_checkins_cliente():
 
 @app.route('/api/cliente/pode-checkin', methods=['GET'])
 def pode_fazer_checkin():
-    if 'cliente_id' not in session:
-        return jsonify({'error': 'Não autenticado'}), 401
-    
-    cliente_id = session['cliente_id']
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    cursor.execute('''
-        SELECT COUNT(*) FROM checkins
-        WHERE cliente_id = %s
-        AND DATE(data_checkin) = DATE('now')
-    ''', (cliente_id,))
-    
-    checkin_hoje = cursor.fetchone()[0]
-    conn.close()
-    
-    return jsonify({
-        'pode_checkin': checkin_hoje == 0,
-        'ja_fez_checkin': checkin_hoje > 0
-    })
+    try:
+        if 'cliente_id' not in session:
+            return jsonify({'error': 'Não autenticado'}), 401
+        
+        cliente_id = session['cliente_id']
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('''
+            SELECT COUNT(*) as count FROM checkins
+            WHERE cliente_id = %s
+            AND DATE(data_checkin) = CURRENT_DATE
+        ''', (cliente_id,))
+        
+        result = cursor.fetchone()
+        checkin_hoje = result['count'] if result else 0
+        conn.close()
+        
+        return jsonify({
+            'pode_checkin': checkin_hoje == 0,
+            'ja_fez_checkin': checkin_hoje > 0
+        })
+    except Exception as e:
+        print(f"ERRO em /api/cliente/pode-checkin: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/produtos', methods=['GET'])
 def listar_produtos():
