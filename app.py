@@ -402,25 +402,29 @@ def obter_cliente(cliente_id):
 
 @app.route('/api/clientes/<int:cliente_id>', methods=['PUT'])
 def atualizar_cliente(cliente_id):
-    data = request.json
-    nome = data.get('nome')
-    telefone = data.get('telefone', '')
-    email = data.get('email', '')
-    
-    if not nome:
-        return jsonify({'error': 'Nome é obrigatório'}), 400
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    cursor.execute('''
-        UPDATE clientes 
-        SET nome = %s, telefone = ?, email = ?
-        WHERE id = %s
-    ''', (nome, telefone, email, cliente_id))
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'message': 'Cliente atualizado com sucesso'})
+    try:
+        data = request.json
+        nome = data.get('nome')
+        telefone = data.get('telefone', '')
+        email = data.get('email', '')
+        
+        if not nome:
+            return jsonify({'error': 'Nome é obrigatório'}), 400
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('''
+            UPDATE clientes 
+            SET nome = %s, telefone = %s, email = %s
+            WHERE id = %s
+        ''', (nome, telefone, email, cliente_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'Cliente atualizado com sucesso'})
+    except Exception as e:
+        print(f"ERRO em /api/clientes/<id> PUT: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/clientes/<int:cliente_id>', methods=['DELETE'])
 def deletar_cliente(cliente_id):
