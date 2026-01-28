@@ -147,16 +147,25 @@ SEMAFORO/
 - Sessões seguras com Flask
 - CORS configurado para desenvolvimento
 
-## 🌐 Deploy na Vercel
+## 🌐 Deploy na Vercel com Supabase
 
-Para fazer deploy na Vercel, consulte o arquivo [DEPLOY.md](DEPLOY.md) com instruções detalhadas.
+✅ **O projeto já está configurado para PostgreSQL (Supabase)!**
+
+Para fazer deploy na Vercel com Supabase PostgreSQL, consulte:
+- **[DEPLOY.md](DEPLOY.md)** - Instruções resumidas
+- **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)** - Guia completo passo a passo
 
 **Resumo rápido:**
-1. Conecte seu repositório GitHub à Vercel
-2. Configure as variáveis de ambiente necessárias
-3. Deploy automático a cada push
+1. Crie projeto gratuito no Supabase (https://supabase.com)
+2. Copie a connection string do banco
+3. Configure variáveis de ambiente na Vercel
+4. Deploy automático a cada push
 
-⚠️ **Importante**: Para produção, considere migrar de SQLite para um banco de dados em nuvem (PostgreSQL, MySQL, etc.)
+**Vantagens do Supabase:**
+- 🆓 Tier gratuito (500 MB)
+- 🔄 Backup automático
+- 📊 Dashboard visual para gerenciar dados
+- 🚀 PostgreSQL completo
 
 ## 📝 Licença
 

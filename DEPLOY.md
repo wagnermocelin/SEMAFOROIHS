@@ -30,48 +30,54 @@ vercel
 vercel --prod
 ```
 
-## 🗄️ Configuração do Vercel Postgres (OBRIGATÓRIO)
+## 🗄️ Configuração do Supabase PostgreSQL (OBRIGATÓRIO)
 
 **✅ O código já está migrado para PostgreSQL!**
 
-### Passo 1: Criar Banco de Dados Vercel Postgres
+### Passo 1: Criar Projeto no Supabase
 
-1. Acesse https://vercel.com/dashboard/stores
-2. Clique em **"Create Database"**
-3. Selecione **"Postgres"**
-4. Escolha um nome (ex: `semaforo-db`)
-5. Selecione a região mais próxima
-6. Clique em **"Create"**
+1. Acesse https://supabase.com
+2. Faça login (GitHub, Google ou email)
+3. Clique em **"New Project"**
+4. Preencha:
+   - **Name**: `semaforo-bar`
+   - **Database Password**: Crie uma senha forte (ANOTE!)
+   - **Region**: South America (São Paulo) ou mais próxima
+   - **Plan**: Free (gratuito)
+5. Clique em **"Create new project"**
+6. Aguarde 1-2 minutos
 
-### Passo 2: Conectar ao Projeto
+### Passo 2: Obter Connection String
 
-1. No dashboard do banco criado, clique em **"Connect Project"**
-2. Selecione seu projeto: `SEMAFOROIHS`
-3. Clique em **"Connect"**
-4. A variável `POSTGRES_URL` será automaticamente adicionada ao projeto
+1. No projeto, clique em **Settings** (engrenagem)
+2. Vá em **Database**
+3. Em **Connection string**, selecione **URI**
+4. Copie a URL e substitua `[YOUR-PASSWORD]` pela senha do Passo 1
 
-### Passo 3: Inicializar o Banco de Dados
+**Formato:**
+```
+postgresql://postgres:SuaSenha@db.xxxxx.supabase.co:5432/postgres
+```
 
-Após o primeiro deploy, as tabelas serão criadas automaticamente pela função `init_db()`.
-
-**Estrutura criada:**
-- `clientes` - Dados dos clientes
-- `pontuacoes` - Histórico de pontos
-- `configuracoes` - Configurações do bar
-- `produtos` - Produtos disponíveis
-- `solicitacoes_pontos` - Solicitações pendentes
-- `checkins` - Registro de visitas
-
-### Passo 4: Configurar Variáveis de Ambiente
+### Passo 3: Configurar Variáveis de Ambiente na Vercel
 
 No dashboard da Vercel, vá em **Settings > Environment Variables** e adicione:
 
 ```
+POSTGRES_URL=<connection string do Supabase>
+DATABASE_URL=<mesma connection string>
 SECRET_KEY=<gere com: python -c "import secrets; print(secrets.token_hex(32))">
 FLASK_ENV=production
 ```
 
-**Nota:** `POSTGRES_URL` já foi configurada automaticamente no Passo 2.
+### Passo 4: Deploy e Inicialização
+
+Após configurar as variáveis:
+1. Faça redeploy na Vercel
+2. As tabelas serão criadas automaticamente no primeiro acesso
+3. Verifique no Supabase → **Table Editor**
+
+**📖 Para guia detalhado, consulte:** [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 
 ## 📁 Arquivos de Configuração
 

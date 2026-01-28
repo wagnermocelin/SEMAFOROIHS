@@ -92,12 +92,15 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### Produção (Vercel)
+### Produção (Vercel + Supabase)
 
-1. Crie banco Vercel Postgres no dashboard
-2. Conecte ao projeto
-3. Deploy automático configurará `POSTGRES_URL`
-4. Tabelas serão criadas automaticamente no primeiro acesso
+1. Crie projeto gratuito no Supabase (https://supabase.com)
+2. Copie a connection string do banco
+3. Configure `POSTGRES_URL` nas variáveis de ambiente da Vercel
+4. Deploy automático
+5. Tabelas serão criadas automaticamente no primeiro acesso
+
+**📖 Guia completo:** Consulte [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 
 ## 🔧 Troubleshooting
 
