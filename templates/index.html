@@ -311,6 +311,7 @@
                             <table class="w-full">
                                 <thead class="bg-gray-700/50">
                                     <tr>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold">Avatar</th>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Telefone</th>
                                         <th class="px-6 py-4 text-left text-sm font-semibold">Pontos</th>
@@ -808,6 +809,18 @@
             }
         }
 
+        function gerarAvatar(nome) {
+            const iniciais = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const cores = [
+                'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 
+                'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+            ];
+            const corIndex = nome.charCodeAt(0) % cores.length;
+            const cor = cores[corIndex];
+            
+            return `<div class="w-10 h-10 rounded-full ${cor} flex items-center justify-center text-white font-bold text-sm">${iniciais}</div>`;
+        }
+
         function renderizarClientes(clientes) {
             const lista = document.getElementById('lista-clientes');
             const listaMobile = document.getElementById('lista-clientes-mobile');
@@ -818,7 +831,7 @@
             }
             
             if (clientes.length === 0) {
-                lista.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Nenhum cliente cadastrado</td></tr>';
+                lista.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Nenhum cliente cadastrado</td></tr>';
                 listaMobile.innerHTML = '<div class="bg-gray-800/50 rounded-lg p-6 text-center text-gray-400">Nenhum cliente cadastrado</div>';
                 return;
             }
@@ -828,9 +841,11 @@
             clientes.forEach(cliente => {
                 const nivelClass = 'badge-' + cliente.nivel;
                 const nivelTexto = cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1);
+                const avatar = gerarAvatar(cliente.nome);
                 
                 htmlDesktop += `
                     <tr style="background-color: rgba(55, 65, 81, 0.3);">
+                        <td class="px-6 py-4">${avatar}</td>
                         <td class="px-6 py-4 text-white font-medium">${cliente.nome}</td>
                         <td class="px-6 py-4 text-gray-300">${cliente.telefone || '-'}</td>
                         <td class="px-6 py-4 text-blue-400 font-bold">${cliente.pontos_totais}</td>
@@ -872,12 +887,14 @@
             clientes.forEach(cliente => {
                 const nivelClass = 'badge-' + cliente.nivel;
                 const nivelTexto = cliente.nivel.charAt(0).toUpperCase() + cliente.nivel.slice(1);
+                const avatar = gerarAvatar(cliente.nome);
                 
                 htmlMobile += `
-                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-lg p-4 shadow-lg border border-gray-700">
-                        <div class="flex justify-between items-start mb-3">
+                    <div class="bg-gray-800/50 rounded-lg p-4 space-y-3">
+                        <div class="flex items-start gap-3">
+                            ${avatar}
                             <div class="flex-1">
-                                <h3 class="text-lg font-bold text-white mb-1">${cliente.nome}</h3>
+                                <h3 class="text-white font-bold text-lg">${cliente.nome}</h3>
                                 <p class="text-sm text-gray-400">${cliente.telefone || 'Sem telefone'}</p>
                             </div>
                             <span class="semaforo-badge ${nivelClass} text-xs">

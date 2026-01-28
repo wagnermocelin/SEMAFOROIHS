@@ -63,6 +63,7 @@ def init_db():
             telefone VARCHAR(20),
             email VARCHAR(255),
             senha VARCHAR(255),
+            avatar_url TEXT,
             data_cadastro TIMESTAMP DEFAULT NOW(),
             pontos_totais INTEGER DEFAULT 0,
             nivel VARCHAR(20) DEFAULT 'vermelho',
