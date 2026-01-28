@@ -30,11 +30,22 @@ def get_db():
     try:
         if not DATABASE_URL:
             raise Exception("DATABASE_URL não configurada. Configure POSTGRES_URL ou DATABASE_URL nas variáveis de ambiente.")
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        
+        # Adicionar sslmode=require na URL se não estiver presente
+        url = DATABASE_URL
+        if '?' not in url:
+            url += '?sslmode=require'
+        elif 'sslmode' not in url:
+            url += '&sslmode=require'
+        
+        print(f"Tentando conectar ao banco... (URL configurada: {'Sim' if DATABASE_URL else 'Não'})")
+        conn = psycopg2.connect(url)
+        print("✅ Conexão com banco estabelecida com sucesso!")
         return conn
     except Exception as e:
-        print(f"ERRO DE CONEXÃO: {e}")
+        print(f"❌ ERRO DE CONEXÃO: {e}")
         print(f"DATABASE_URL configurada: {'Sim' if DATABASE_URL else 'Não'}")
+        print(f"Tipo de erro: {type(e).__name__}")
         raise
 
 def dict_cursor(conn):
