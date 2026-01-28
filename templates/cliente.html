@@ -609,9 +609,10 @@
                     document.getElementById('perfil-visita').textContent = data.toLocaleDateString('pt-BR');
                 }
                 
-                const nivelClass = perfil.nivel === 'verde' ? 'badge-verde' : 
-                                  perfil.nivel === 'amarelo' ? 'badge-amarelo' : 'badge-vermelho';
-                const nivelTexto = perfil.nivel.charAt(0).toUpperCase() + perfil.nivel.slice(1);
+                const nivel = perfil.nivel || 'vermelho';
+                const nivelClass = nivel === 'verde' ? 'badge-verde' : 
+                                  nivel === 'amarelo' ? 'badge-amarelo' : 'badge-vermelho';
+                const nivelTexto = nivel.charAt(0).toUpperCase() + nivel.slice(1);
                 
                 document.getElementById('perfil-badge').innerHTML = `
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold ${nivelClass}">
