@@ -509,19 +509,20 @@ def estatisticas():
         cursor = dict_cursor(conn)  # PostgreSQL com dict
         
         cursor.execute('SELECT COUNT(*) as total FROM clientes')
-        total_clientes = cursor.fetchone()[0]
+        total_clientes = cursor.fetchone()['total']
         
         cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'verde'")
-        clientes_verde = cursor.fetchone()[0]
+        clientes_verde = cursor.fetchone()['total']
         
         cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'amarelo'")
-        clientes_amarelo = cursor.fetchone()[0]
+        clientes_amarelo = cursor.fetchone()['total']
         
         cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'vermelho'")
-        clientes_vermelho = cursor.fetchone()[0]
+        clientes_vermelho = cursor.fetchone()['total']
         
         cursor.execute('SELECT SUM(pontos) as total FROM pontuacoes')
-        pontos_distribuidos = cursor.fetchone()[0] or 0
+        result = cursor.fetchone()
+        pontos_distribuidos = result['total'] if result['total'] else 0
         
         conn.close()
         
