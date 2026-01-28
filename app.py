@@ -216,6 +216,32 @@ def calcular_pontos_frequencia(cliente_id):
 def index():
     return render_template('index.html')
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Endpoint de diagnóstico para verificar status da aplicação"""
+    try:
+        # Testar conexão com banco
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1')
+        cursor.fetchone()
+        conn.close()
+        
+        return jsonify({
+            'status': 'ok',
+            'database': 'connected',
+            'database_url_configured': bool(DATABASE_URL),
+            'message': 'Aplicação funcionando corretamente'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'database': 'disconnected',
+            'database_url_configured': bool(DATABASE_URL),
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
 @app.route('/api/clientes', methods=['GET'])
 def listar_clientes():
     conn = get_db()
