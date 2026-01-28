@@ -552,6 +552,48 @@
         </div>
     </div>
 
+    <!-- Modal Editar Cliente -->
+    <div id="modal-editar-cliente" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Editar Cliente</h3>
+                <button onclick="fecharModalEditarCliente()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="form-editar-cliente" onsubmit="salvarEdicaoCliente(event)">
+                <input type="hidden" id="editar-cliente-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Nome *</label>
+                        <input type="text" id="editar-nome-cliente" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Telefone</label>
+                        <input type="tel" id="editar-telefone-cliente"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="editar-email-cliente"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="fecharModalEditarCliente()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg font-semibold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 px-4 py-3 rounded-lg font-semibold transition">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="modal-adicionar-pontos" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
         <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center mb-6">
@@ -804,6 +846,11 @@
                                     title="Adicionar Pontos">
                                     <i class="fas fa-plus"></i>
                                 </button>
+                                <button onclick="editarCliente(${cliente.id})" 
+                                    class="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded-lg transition"
+                                    title="Editar Cliente">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button onclick="verDetalhes(${cliente.id})" 
                                     class="bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition"
                                     title="Ver Detalhes">
@@ -845,6 +892,10 @@
                             <button onclick="abrirModalPontos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" 
                                 class="flex-1 bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg transition text-sm">
                                 <i class="fas fa-plus mr-1"></i> Pontos
+                            </button>
+                            <button onclick="editarCliente(${cliente.id})" 
+                                class="flex-1 bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded-lg transition text-sm">
+                                <i class="fas fa-edit mr-1"></i> Editar
                             </button>
                             <button onclick="verDetalhes(${cliente.id})" 
                                 class="flex-1 bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg transition text-sm">
@@ -942,6 +993,61 @@
             } catch (error) {
                 console.error('Erro ao cadastrar cliente:', error);
                 alert('Erro ao cadastrar cliente');
+            }
+        }
+
+        async function editarCliente(clienteId) {
+            try {
+                const response = await fetch('/api/clientes');
+                const clientes = await response.json();
+                const cliente = clientes.find(c => c.id === clienteId);
+                
+                if (cliente) {
+                    document.getElementById('editar-cliente-id').value = cliente.id;
+                    document.getElementById('editar-nome-cliente').value = cliente.nome;
+                    document.getElementById('editar-telefone-cliente').value = cliente.telefone || '';
+                    document.getElementById('editar-email-cliente').value = cliente.email || '';
+                    
+                    document.getElementById('modal-editar-cliente').classList.remove('hidden');
+                    document.getElementById('modal-editar-cliente').classList.add('flex');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do cliente:', error);
+                alert('Erro ao carregar dados do cliente');
+            }
+        }
+
+        function fecharModalEditarCliente() {
+            document.getElementById('modal-editar-cliente').classList.add('hidden');
+            document.getElementById('modal-editar-cliente').classList.remove('flex');
+            document.getElementById('form-editar-cliente').reset();
+        }
+
+        async function salvarEdicaoCliente(event) {
+            event.preventDefault();
+            
+            const clienteId = document.getElementById('editar-cliente-id').value;
+            const nome = document.getElementById('editar-nome-cliente').value;
+            const telefone = document.getElementById('editar-telefone-cliente').value;
+            const email = document.getElementById('editar-email-cliente').value;
+            
+            try {
+                const response = await fetch(`/api/clientes/${clienteId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, telefone, email })
+                });
+                
+                if (response.ok) {
+                    fecharModalEditarCliente();
+                    carregarClientes();
+                    alert('Cliente atualizado com sucesso!');
+                } else {
+                    alert('Erro ao atualizar cliente');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar cliente:', error);
+                alert('Erro ao atualizar cliente');
             }
         }
 
