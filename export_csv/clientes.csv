@@ -1,0 +1,8 @@
+id,nome,telefone,email,senha,data_cadastro,pontos_totais,nivel,ultima_visita
+1,FERNANDO BERNARDINO,99113-3310,fgbernardino@gmail.com,,2026-01-23 01:35:15,260,amarelo,2026-01-23 02:12:21
+2,KLEBER SOPKO,,,,2026-01-23 01:35:59,200,amarelo,2026-01-23 02:07:41
+3,VINICIUS JULA,,,,2026-01-23 01:37:09,0,vermelho,
+4,MARCOS PRADO,,,,2026-01-23 01:37:17,0,vermelho,
+5,DIEGO,,,,2026-01-23 01:37:23,0,vermelho,
+6,CLEVERSON,,,,2026-01-23 01:37:44,0,vermelho,
+7,NILTON,,,,2026-01-23 01:37:50,0,vermelho,

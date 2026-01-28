@@ -1,0 +1,8 @@
+id,cliente_id,pontos,tipo,descricao,data,data_validade
+1,1,50,consumo,UMA MUTUM,2026-01-23 01:35:31,
+2,1,150,consumo,3 AMBER COM O KLEBER,2026-01-23 01:35:47,
+3,2,200,consumo,,2026-01-23 01:36:11,
+4,1,50,consumo,,2026-01-23 01:36:19,
+5,1,10,frequencia,,2026-01-23 02:07:31,2026-04-23 02:07:31
+6,2,10,frequencia,,2026-01-23 02:07:41,2026-04-23 02:07:41
+7,1,15,produto,Produto consumido (Solicitação #1),2026-01-23 02:09:11,2026-04-23 02:09:11

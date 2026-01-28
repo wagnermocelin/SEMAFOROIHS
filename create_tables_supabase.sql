@@ -7,7 +7,7 @@
 -- 1. Tabela de Configurações
 CREATE TABLE IF NOT EXISTS configuracoes (
     id SERIAL PRIMARY KEY,
-    nome_bar VARCHAR(255) DEFAULT 'Semáforo Bar',
+    nome_bar VARCHAR(255) DEFAULT 'Semáforo I Hop So',
     logo_path TEXT,
     pontos_vermelho_min INTEGER DEFAULT 0,
     pontos_amarelo_min INTEGER DEFAULT 200,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS configuracoes (
 
 -- Inserir configuração padrão
 INSERT INTO configuracoes (nome_bar, senha_admin) 
-VALUES ('Semáforo Bar', 'admin123')
+VALUES ('Semáforo I Hop So', 'admin123')
 ON CONFLICT DO NOTHING;
 
 -- 2. Tabela de Clientes
