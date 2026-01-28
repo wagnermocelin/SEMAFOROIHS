@@ -1055,66 +1055,70 @@ def listar_solicitacoes_cliente():
 
 @app.route('/api/solicitacoes/<int:solicitacao_id>/validar', methods=['POST'])
 def validar_solicitacao(solicitacao_id):
-    if not session.get('admin'):
-        return jsonify({'error': 'Não autorizado'}), 401
-    
-    data = request.json
-    aprovar = data.get('aprovar', False)
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    
-    cursor.execute('SELECT * FROM solicitacoes_pontos WHERE id = %s', (solicitacao_id,))
-    solicitacao = cursor.fetchone()
-    
-    if not solicitacao:
-        conn.close()
-        return jsonify({'error': 'Solicitação não encontrada'}), 404
-    
-    if solicitacao['status'] != 'pendente':
-        conn.close()
-        return jsonify({'error': 'Solicitação já foi processada'}), 400
-    
-    novo_status = 'aprovada' if aprovar else 'rejeitada'
-    
-    cursor.execute('''
-        UPDATE solicitacoes_pontos 
-        SET status = %s, data_validacao = NOW(), validado_por = 'admin'
-        WHERE id = %s
-    ''', (novo_status, solicitacao_id))
-    
-    if aprovar:
+    try:
+        if not session.get('admin'):
+            return jsonify({'error': 'Não autorizado'}), 401
+        
+        data = request.json
+        aprovar = data.get('aprovar', False)
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        
+        cursor.execute('SELECT * FROM solicitacoes_pontos WHERE id = %s', (solicitacao_id,))
+        solicitacao = cursor.fetchone()
+        
+        if not solicitacao:
+            conn.close()
+            return jsonify({'error': 'Solicitação não encontrada'}), 404
+        
+        if solicitacao['status'] != 'pendente':
+            conn.close()
+            return jsonify({'error': 'Solicitação já foi processada'}), 400
+        
+        novo_status = 'aprovada' if aprovar else 'rejeitada'
+        
         cursor.execute('''
-            INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-            VALUES (%s, %s, 'produto', %s, NOW() + INTERVAL '90 days')
-        ''', (solicitacao['cliente_id'], solicitacao['pontos_total'], 
-              f"Produto consumido (Solicitação #{solicitacao_id})"))
+            UPDATE solicitacoes_pontos 
+            SET status = %s, data_validacao = NOW(), validado_por = 'admin'
+            WHERE id = %s
+        ''', (novo_status, solicitacao_id))
         
-        pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
-        pontos_bonus, dias_visitados = calcular_pontos_frequencia(solicitacao['cliente_id'])
-        
-        if pontos_bonus > 0:
+        if aprovar:
             cursor.execute('''
                 INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
-                VALUES (%s, %s, 'frequencia', %s, NOW() + INTERVAL '90 days')
-            ''', (solicitacao['cliente_id'], pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
+                VALUES (%s, %s, 'produto', %s, NOW() + INTERVAL '90 days')
+            ''', (solicitacao['cliente_id'], solicitacao['pontos_total'], 
+                  f"Produto consumido (Solicitação #{solicitacao_id})"))
+            
             pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
+            pontos_bonus, dias_visitados = calcular_pontos_frequencia(solicitacao['cliente_id'])
+            
+            if pontos_bonus > 0:
+                cursor.execute('''
+                    INSERT INTO pontuacoes (cliente_id, pontos, tipo, descricao, data_validade)
+                    VALUES (%s, %s, 'frequencia', %s, NOW() + INTERVAL '90 days')
+                ''', (solicitacao['cliente_id'], pontos_bonus, f'Bônus de frequência: {dias_visitados} visitas em 30 dias'))
+                pontos_validos = calcular_pontos_validos(solicitacao['cliente_id'])
+            
+            cursor.execute('''
+                UPDATE clientes 
+                SET pontos_totais = %s,
+                    nivel = %s,
+                    ultima_visita = NOW()
+                WHERE id = %s
+            ''', (pontos_validos, calcular_nivel(pontos_validos), solicitacao['cliente_id']))
         
-        cursor.execute('''
-            UPDATE clientes 
-            SET pontos_totais = %s,
-                nivel = ?,
-                ultima_visita = NOW()
-            WHERE id = %s
-        ''', (pontos_validos, calcular_nivel(pontos_validos), solicitacao['cliente_id']))
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({
-        'message': f'Solicitação {novo_status} com sucesso!',
-        'status': novo_status
-    })
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'message': f'Solicitação {novo_status} com sucesso!',
+            'status': novo_status
+        })
+    except Exception as e:
+        print(f"ERRO em /api/solicitacoes/<id>/validar: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     init_db()
