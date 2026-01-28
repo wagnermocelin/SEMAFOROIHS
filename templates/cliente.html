@@ -240,6 +240,7 @@
                                         class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
                                         <option value="">Selecione um produto</option>
                                     </select>
+                                    <div id="produto-descricao" class="mt-2 text-sm text-gray-400 italic hidden"></div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Quantidade *</label>
@@ -704,6 +705,7 @@
                     option.value = produto.id;
                     option.textContent = `${produto.nome} - ${produto.pontos} pts`;
                     option.dataset.pontos = produto.pontos;
+                    option.dataset.descricao = produto.descricao || '';
                     select.appendChild(option);
                 });
             } catch (error) {
@@ -714,13 +716,23 @@
         function atualizarPontosProduto() {
             const select = document.getElementById('produto-select');
             const quantidade = parseInt(document.getElementById('quantidade-input').value) || 1;
+            const descricaoDiv = document.getElementById('produto-descricao');
             
             if (select.value) {
                 const pontos = parseInt(select.options[select.selectedIndex].dataset.pontos);
+                const descricao = select.options[select.selectedIndex].dataset.descricao;
                 const total = pontos * quantidade;
                 document.getElementById('pontos-preview').textContent = `${total} pts`;
+                
+                if (descricao && descricao.trim() !== '') {
+                    descricaoDiv.textContent = descricao;
+                    descricaoDiv.classList.remove('hidden');
+                } else {
+                    descricaoDiv.classList.add('hidden');
+                }
             } else {
                 document.getElementById('pontos-preview').textContent = '0 pts';
+                descricaoDiv.classList.add('hidden');
             }
         }
 
