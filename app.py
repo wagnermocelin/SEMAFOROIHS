@@ -26,9 +26,16 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def get_db():
-    """Conecta ao PostgreSQL usando a URL do Vercel Postgres"""
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    return conn
+    """Conecta ao PostgreSQL usando a URL do Supabase"""
+    try:
+        if not DATABASE_URL:
+            raise Exception("DATABASE_URL não configurada. Configure POSTGRES_URL ou DATABASE_URL nas variáveis de ambiente.")
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        return conn
+    except Exception as e:
+        print(f"ERRO DE CONEXÃO: {e}")
+        print(f"DATABASE_URL configurada: {'Sim' if DATABASE_URL else 'Não'}")
+        raise
 
 def dict_cursor(conn):
     """Retorna um cursor que retorna dicionários em vez de tuplas"""
@@ -345,17 +352,21 @@ def adicionar_pontos():
 
 @app.route('/api/ranking', methods=['GET'])
 def ranking():
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    cursor.execute('''
-        SELECT id, nome, pontos_totais, nivel
-        FROM clientes
-        ORDER BY pontos_totais DESC
-        LIMIT 10
-    ''')
-    ranking = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(ranking)
+    try:
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('''
+            SELECT id, nome, pontos_totais, nivel
+            FROM clientes
+            ORDER BY pontos_totais DESC
+            LIMIT 10
+        ''')
+        ranking = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return jsonify(ranking)
+    except Exception as e:
+        print(f"ERRO em /api/ranking: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/estatisticas', methods=['GET'])
 def estatisticas():
@@ -389,22 +400,30 @@ def estatisticas():
 
 @app.route('/api/configuracoes', methods=['GET'])
 def obter_configuracoes():
-    config = get_configuracoes()
-    if config:
-        config.pop('senha_admin', None)
-    return jsonify(config or {})
+    try:
+        config = get_configuracoes()
+        if config:
+            config.pop('senha_admin', None)
+        return jsonify(config or {})
+    except Exception as e:
+        print(f"ERRO em /api/configuracoes: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
-    data = request.json
-    senha = data.get('senha')
-    
-    config = get_configuracoes()
-    if config and config['senha_admin'] == senha:
-        session['admin'] = True
-        return jsonify({'success': True, 'message': 'Login realizado com sucesso'})
-    
-    return jsonify({'success': False, 'message': 'Senha incorreta'}), 401
+    try:
+        data = request.json
+        senha = data.get('senha')
+        
+        config = get_configuracoes()
+        if config and config['senha_admin'] == senha:
+            session['admin'] = True
+            return jsonify({'success': True, 'message': 'Login realizado com sucesso'})
+        
+        return jsonify({'success': False, 'message': 'Senha incorreta'}), 401
+    except Exception as e:
+        print(f"ERRO em /api/admin/login: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/logout', methods=['POST'])
 def admin_logout():
