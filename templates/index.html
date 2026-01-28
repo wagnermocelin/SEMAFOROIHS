@@ -1559,20 +1559,28 @@
             if (!confirm(`Tem certeza que deseja ${acao} esta solicitação?`)) return;
             
             try {
+                console.log('Validando solicitação:', solicitacaoId, 'aprovar:', aprovar);
                 const response = await fetch(`/api/solicitacoes/${solicitacaoId}/validar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ aprovar })
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Response data:', data);
                     alert(data.message);
                     carregarSolicitacoesAdmin(statusFiltroAdmin);
+                } else {
+                    const errorData = await response.json();
+                    console.error('Erro na resposta:', errorData);
+                    alert(errorData.error || 'Erro ao validar solicitação');
                 }
             } catch (error) {
                 console.error('Erro ao validar solicitação:', error);
-                alert('Erro ao validar solicitação');
+                alert('Erro ao validar solicitação: ' + error.message);
             }
         }
 
