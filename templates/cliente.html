@@ -621,8 +621,8 @@
                     </div>
                 `;
                 
-                const pontosAmarelo = perfil.config.pontos_amarelo;
-                const pontosVerde = perfil.config.pontos_verde;
+                const pontosAmarelo = perfil.config?.pontos_amarelo || 200;
+                const pontosVerde = perfil.config?.pontos_verde || 500;
                 
                 document.getElementById('limite-vermelho').textContent = pontosAmarelo - 1;
                 document.getElementById('limite-amarelo-min').textContent = pontosAmarelo;
