@@ -197,7 +197,7 @@ def calcular_pontos_frequencia(cliente_id):
     ''', (cliente_id,))
     
     resultado = cursor.fetchone()
-    dias_visitados = resultado[0] if resultado[0] else 0
+    dias_visitados = resultado['dias_visitados'] if resultado and resultado['dias_visitados'] else 0
     
     pontos_bonus = 0
     if dias_visitados >= 20:
