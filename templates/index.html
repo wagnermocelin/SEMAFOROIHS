@@ -529,7 +529,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Telefone</label>
-                        <input type="tel" id="telefone-cliente"
+                        <input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000" maxlength="15" oninput="formatarTelefone(this)"
                             class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
@@ -571,7 +571,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Telefone</label>
-                        <input type="tel" id="editar-telefone-cliente"
+                        <input type="tel" id="editar-telefone-cliente" placeholder="(00) 00000-0000" maxlength="15" oninput="formatarTelefone(this)"
                             class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500">
                     </div>
                     <div>
@@ -1582,6 +1582,24 @@
                 console.error('Erro ao validar solicitação:', error);
                 alert('Erro ao validar solicitação: ' + error.message);
             }
+        }
+
+        function formatarTelefone(input) {
+            let valor = input.value.replace(/\D/g, '');
+            
+            if (valor.length > 11) {
+                valor = valor.substring(0, 11);
+            }
+            
+            if (valor.length > 6) {
+                valor = valor.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+            } else if (valor.length > 2) {
+                valor = valor.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (valor.length > 0) {
+                valor = valor.replace(/(\d{0,2})/, '($1');
+            }
+            
+            input.value = valor;
         }
 
         carregarConfiguracoes();
