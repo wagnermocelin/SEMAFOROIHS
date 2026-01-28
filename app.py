@@ -281,6 +281,64 @@ def debug_tables():
             'error_type': type(e).__name__
         }), 500
 
+@app.route('/api/debug/estatisticas', methods=['GET'])
+def debug_estatisticas():
+    """Endpoint para testar query de estatísticas passo a passo"""
+    try:
+        conn = get_db()
+        cursor = dict_cursor(conn)
+        
+        resultados = {}
+        
+        # Teste 1: Contar total de clientes
+        try:
+            cursor.execute('SELECT COUNT(*) as total FROM clientes')
+            resultados['total_clientes'] = cursor.fetchone()['total']
+        except Exception as e:
+            resultados['total_clientes'] = f'ERRO: {str(e)}'
+        
+        # Teste 2: Contar clientes verdes
+        try:
+            cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'verde'")
+            resultados['clientes_verde'] = cursor.fetchone()['total']
+        except Exception as e:
+            resultados['clientes_verde'] = f'ERRO: {str(e)}'
+        
+        # Teste 3: Contar clientes amarelos
+        try:
+            cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'amarelo'")
+            resultados['clientes_amarelo'] = cursor.fetchone()['total']
+        except Exception as e:
+            resultados['clientes_amarelo'] = f'ERRO: {str(e)}'
+        
+        # Teste 4: Contar clientes vermelhos
+        try:
+            cursor.execute("SELECT COUNT(*) as total FROM clientes WHERE nivel = 'vermelho'")
+            resultados['clientes_vermelho'] = cursor.fetchone()['total']
+        except Exception as e:
+            resultados['clientes_vermelho'] = f'ERRO: {str(e)}'
+        
+        # Teste 5: Somar pontos
+        try:
+            cursor.execute('SELECT SUM(pontos) as total FROM pontuacoes')
+            result = cursor.fetchone()
+            resultados['pontos_distribuidos'] = result['total'] if result['total'] else 0
+        except Exception as e:
+            resultados['pontos_distribuidos'] = f'ERRO: {str(e)}'
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'ok',
+            'resultados': resultados
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
 @app.route('/api/clientes', methods=['GET'])
 def listar_clientes():
     conn = get_db()
