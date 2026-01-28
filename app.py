@@ -652,40 +652,48 @@ def area_cliente():
 
 @app.route('/api/cliente/login', methods=['POST'])
 def cliente_login():
-    data = request.json
-    telefone = data.get('telefone')
-    senha = data.get('senha')
-    
-    if not telefone:
-        return jsonify({'error': 'Telefone é obrigatório'}), 400
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    
-    if senha:
-        cursor.execute('SELECT * FROM clientes WHERE telefone = %s AND senha = %s', (telefone, senha))
-    else:
-        cursor.execute('SELECT * FROM clientes WHERE telefone = %s', (telefone,))
-    
-    cliente = cursor.fetchone()
-    conn.close()
-    
-    if cliente:
-        session['cliente_id'] = cliente['id']
-        session['cliente_nome'] = cliente['nome']
-        return jsonify({
-            'success': True,
-            'cliente': {
-                'id': cliente['id'],
-                'nome': cliente['nome'],
-                'telefone': cliente['telefone'],
-                'email': cliente['email'],
-                'pontos_totais': cliente['pontos_totais'],
-                'nivel': cliente['nivel']
-            }
-        })
-    
-    return jsonify({'error': 'Cliente não encontrado ou senha incorreta'}), 401
+    try:
+        data = request.json
+        telefone = data.get('telefone')
+        senha = data.get('senha')
+        
+        print(f"DEBUG: Tentativa de login - Telefone: {telefone}, Tem senha: {bool(senha)}")
+        
+        if not telefone:
+            return jsonify({'error': 'Telefone é obrigatório'}), 400
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        
+        if senha:
+            cursor.execute('SELECT * FROM clientes WHERE telefone = %s AND senha = %s', (telefone, senha))
+        else:
+            cursor.execute('SELECT * FROM clientes WHERE telefone = %s', (telefone,))
+        
+        cliente = cursor.fetchone()
+        conn.close()
+        
+        if cliente:
+            print(f"DEBUG: Cliente encontrado - ID: {cliente['id']}, Nome: {cliente['nome']}")
+            session['cliente_id'] = cliente['id']
+            session['cliente_nome'] = cliente['nome']
+            return jsonify({
+                'success': True,
+                'cliente': {
+                    'id': cliente['id'],
+                    'nome': cliente['nome'],
+                    'telefone': cliente['telefone'],
+                    'email': cliente['email'],
+                    'pontos_totais': cliente['pontos_totais'],
+                    'nivel': cliente['nivel']
+                }
+            })
+        
+        print(f"DEBUG: Cliente não encontrado para telefone: {telefone}")
+        return jsonify({'error': 'Cliente não encontrado ou senha incorreta'}), 401
+    except Exception as e:
+        print(f"ERRO em /api/cliente/login: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cliente/logout', methods=['POST'])
 def cliente_logout():
@@ -758,28 +766,36 @@ def cliente_perfil():
 
 @app.route('/api/cliente/definir-senha', methods=['POST'])
 def cliente_definir_senha():
-    data = request.json
-    telefone = data.get('telefone')
-    senha = data.get('senha')
-    
-    if not telefone or not senha:
-        return jsonify({'error': 'Telefone e senha são obrigatórios'}), 400
-    
-    if len(senha) < 4:
-        return jsonify({'error': 'Senha deve ter no mínimo 4 caracteres'}), 400
-    
-    conn = get_db()
-    cursor = dict_cursor(conn)  # PostgreSQL com dict
-    cursor.execute('UPDATE clientes SET senha = %s WHERE telefone = %s', (senha, telefone))
-    
-    if cursor.rowcount == 0:
+    try:
+        data = request.json
+        telefone = data.get('telefone')
+        senha = data.get('senha')
+        
+        print(f"DEBUG: Definir senha - Telefone: {telefone}")
+        
+        if not telefone or not senha:
+            return jsonify({'error': 'Telefone e senha são obrigatórios'}), 400
+        
+        if len(senha) < 4:
+            return jsonify({'error': 'Senha deve ter no mínimo 4 caracteres'}), 400
+        
+        conn = get_db()
+        cursor = dict_cursor(conn)  # PostgreSQL com dict
+        cursor.execute('UPDATE clientes SET senha = %s WHERE telefone = %s', (senha, telefone))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            print(f"DEBUG: Cliente não encontrado para telefone: {telefone}")
+            return jsonify({'error': 'Cliente não encontrado'}), 404
+        
+        conn.commit()
         conn.close()
-        return jsonify({'error': 'Cliente não encontrado'}), 404
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True, 'message': 'Senha definida com sucesso'})
+        
+        print(f"DEBUG: Senha definida com sucesso para telefone: {telefone}")
+        return jsonify({'success': True, 'message': 'Senha definida com sucesso'})
+    except Exception as e:
+        print(f"ERRO em /api/cliente/definir-senha: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cliente/checkin', methods=['POST'])
 def fazer_checkin():
