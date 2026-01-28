@@ -9,7 +9,11 @@ import psycopg2.extras
 from datetime import datetime
 
 # Configuração - EDITE AQUI COM SUAS CREDENCIAIS
-SUPABASE_URL = "postgresql://postgres:$$J25021989j@@db.mofyddgzvhwxaorhpzuq.supabase.co:5432/postgres"
+SUPABASE_HOST = "db.mofyddgzvhwxaorhpzuq.supabase.co"
+SUPABASE_DATABASE = "postgres"
+SUPABASE_USER = "postgres"
+SUPABASE_PASSWORD = "$$J25021989j@@"
+SUPABASE_PORT = "5432"
 SQLITE_DB = "semaforo.db"
 
 def conectar_sqlite():
@@ -26,12 +30,19 @@ def conectar_sqlite():
 def conectar_supabase():
     """Conecta ao Supabase PostgreSQL"""
     try:
-        conn = psycopg2.connect(SUPABASE_URL, sslmode='require')
+        conn = psycopg2.connect(
+            host=SUPABASE_HOST,
+            database=SUPABASE_DATABASE,
+            user=SUPABASE_USER,
+            password=SUPABASE_PASSWORD,
+            port=SUPABASE_PORT,
+            sslmode='require'
+        )
         print("✅ Conectado ao Supabase PostgreSQL")
         return conn
     except Exception as e:
         print(f"❌ Erro ao conectar Supabase: {e}")
-        print("Verifique se a URL está correta e se o banco está ativo")
+        print("Verifique se as credenciais estão corretas e se o banco está ativo")
         return None
 
 def criar_tabelas_supabase(pg_conn):
