@@ -789,12 +789,13 @@ def fazer_checkin():
     cursor = dict_cursor(conn)  # PostgreSQL com dict
     
     cursor.execute('''
-        SELECT COUNT(*) FROM checkins
+        SELECT COUNT(*) as count FROM checkins
         WHERE cliente_id = %s
-        AND DATE(data_checkin) = DATE('now')
+        AND DATE(data_checkin) = CURRENT_DATE
     ''', (cliente_id,))
     
-    checkin_hoje = cursor.fetchone()[0]
+    result = cursor.fetchone()
+    checkin_hoje = result['count'] if result else 0
     
     if checkin_hoje > 0:
         conn.close()
